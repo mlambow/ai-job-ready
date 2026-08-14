@@ -1,23 +1,28 @@
-'use client'
+"use client";
 
-import {useRouter} from "next/navigation";
-import {useState} from "react";
-import {signInWithGoogle} from "@/lib/firebase/auth";
-import {Loader2} from "lucide-react";
-import GoogleIcon from './googleIcon'
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { signInWithGoogle } from "@/lib/firebase/auth";
+import GoogleIcon from "@/components/auth/googleIcon";
 
-export default function GoogleButton() {
-    const router = useRouter();
-    const [loading, setLoading] = useState(true);
+interface GoogleButtonProps {
+    onSuccess: () => void;
+    onError: (error: unknown) => void;
+}
 
-    async function handleGoogleSignIn() {
+export function GoogleButton({onSuccess, onError}: GoogleButtonProps) {
+    const [loading, setLoading] = useState(false);
+
+    async function handleClick() {
         try {
             setLoading(true);
-            await signInWithGoogle()
-            router.push("/dashboard")
-        }catch (error) {
-            console.error('Google sign in failed', error);
-        }finally {
+
+            await signInWithGoogle();
+
+            onSuccess();
+        } catch (error) {
+            onError(error);
+        } finally {
             setLoading(false);
         }
     }
@@ -25,9 +30,9 @@ export default function GoogleButton() {
     return (
         <button
             type="button"
-            onClick={handleGoogleSignIn}
+            onClick={handleClick}
             disabled={loading}
-            className="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-background font-medium transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+            className="group flex h-12 w-full items-center justify-center gap-3 rounded-xl hover:border hover:border-border cursor-pointer bg-background text-sm font-semibold transition-all hover:border-foreground/20 hover:bg-muted/50 active:scale-[0.99] disabled:opacity-60"
         >
             {loading ? (
                 <Loader2 className="size-5 animate-spin" />
@@ -35,7 +40,9 @@ export default function GoogleButton() {
                 <GoogleIcon />
             )}
 
-            {loading ? "Signing in..." : "Continue with Google"}
+            {loading
+                ? "Connecting..."
+                : "Continue with Google"}
         </button>
     );
 }

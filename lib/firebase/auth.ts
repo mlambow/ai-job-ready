@@ -8,14 +8,14 @@ import {
 
 const googleProvider = new GoogleAuthProvider();
 
-export async function signUpWithEmail (name: string, email: string, password: string) {
+export async function signUpWithEmail (fullName: string, email: string, password: string) {
     const credentials = await createUserWithEmailAndPassword(
         auth,
         email,
         password
     );
     await updateProfile(credentials.user, {
-        displayName: name,
+        displayName: fullName
     });
 
     await sendEmailVerification(credentials.user);

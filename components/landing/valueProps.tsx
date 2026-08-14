@@ -11,21 +11,21 @@ function ValueItem({title, description}: { title: string; description: string;})
 
 export default function  ValueProps() {
     return (
-        <section className="border-y border-border bg-muted/20">
+        <section className="border-y border-zinc-800/80 bg-zinc-900/40 backdrop-blur-md">
             <div className="mx-auto grid max-w-7xl gap-px px-6 sm:grid-cols-3 lg:px-8">
                 <ValueItem
                     title="ATS-focused"
-                    description="Optimize for the systems screening your application."
+                    description="Optimize for the automated systems screening your application."
                 />
 
                 <ValueItem
                     title="Job-specific"
-                    description="Every recommendation is based on the role you want."
+                    description="Every recommendation is customized to the exact role you want."
                 />
 
                 <ValueItem
                     title="Actionable"
-                    description="Get specific changes instead of generic resume advice."
+                    description="Get clear, tailored rewrite instructions instead of generic advice."
                 />
             </div>
         </section>

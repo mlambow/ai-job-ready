@@ -26,18 +26,17 @@ export default function Features() {
             className="mx-auto max-w-7xl px-6 py-24 lg:px-8 lg:py-32"
         >
             <div className="mx-auto max-w-2xl text-center">
-                <p className="text-sm font-semibold uppercase tracking-widest text-primary">
+                <p className="text-xs font-bold uppercase tracking-widest text-amber-400">
                     Everything you need
                 </p>
 
-                <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+                <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
                     Know exactly what to change.
                 </h2>
 
-                <p className="mt-4 text-lg leading-8 text-muted-foreground">
-                    Stop guessing why your applications aren't getting through. Get
-                    clear, practical feedback based on the job you're actually
-                    applying for.
+                <p className="mt-4 text-base leading-relaxed text-zinc-400">
+                    Stop guessing why your applications aren't getting responses. Get
+                    practical feedback tailored to the target role.
                 </p>
             </div>
 
@@ -48,17 +47,17 @@ export default function Features() {
                     return (
                         <div
                             key={feature.title}
-                            className="group rounded-3xl border border-border bg-card p-7 transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5"
+                            className="group rounded-[32px] border border-zinc-800/80 bg-zinc-900/60 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-amber-400/40 hover:bg-zinc-900/90 hover:shadow-2xl hover:shadow-amber-500/5"
                         >
-                            <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                            <div className="flex size-12 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-400 transition-colors group-hover:bg-amber-400 group-hover:text-zinc-950">
                                 <Icon className="size-6" />
                             </div>
 
-                            <h3 className="mt-6 text-xl font-semibold">
+                            <h3 className="mt-6 text-lg font-bold text-white">
                                 {feature.title}
                             </h3>
 
-                            <p className="mt-3 leading-7 text-muted-foreground">
+                            <p className="mt-2.5 text-xs leading-relaxed text-zinc-400">
                                 {feature.description}
                             </p>
                         </div>
