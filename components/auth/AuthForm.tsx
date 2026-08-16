@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { signInWithEmail, signUpWithEmail } from "@/lib/firebase/auth";
 import { GoogleButton } from "@/components/auth/googleButton";
 import { authErrorMessage } from "@/utils/authErrorMessage";
+import RedirectingState from "@/components/auth/RedirectingState";
 
 interface AuthFormProps {
     mode?: "signin" | "signup";
@@ -30,8 +31,14 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
     const [emailFocused, setEmailFocused] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
 
+    const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signup');
+    const [isSuccess, setIsSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    if (isSuccess) {
+        return <RedirectingState mode={authMode}/>;
+    }
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -49,15 +56,20 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
                 // Handle Sign Up
                 const cleanEmail = email.replace(/\s+/g, '');
                 await signUpWithEmail(fullName, cleanEmail, password);
+
+                setAuthMode('signup')
+                setIsSuccess(true);
+                router.push("/dashboard");
             } else {
                 // Handle Sign In
                 await signInWithEmail(email, password);
-            }
 
-            router.push("/dashboard");
+                setAuthMode('signin')
+                setIsSuccess(true)
+                router.push("/dashboard");
+            }
         } catch (err) {
             setError(authErrorMessage(err));
-        }finally {
             setLoading(false);
         }
     }
@@ -130,7 +142,7 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
                                     placeholder="John Doe"
                                     required={isSignUp}
                                     disabled={loading}
-                                    className="w-full bg-transparent px-3 py-2.5 text-xs font-medium text-white placeholder-zinc-600 focus:outline-none disabled:opacity-50"
+                                    className="w-full bg-transparent px-3 py-2.5 text-xs font-medium placeholder-zinc-600 focus:outline-none disabled:opacity-50"
                                 />
                             </div>
                         </div>
@@ -162,7 +174,7 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
                                 placeholder="you@example.com"
                                 required
                                 disabled={loading}
-                                className="w-full bg-transparent px-3 py-2.5 text-xs font-medium text-white placeholder-zinc-600 focus:outline-none disabled:opacity-50"
+                                className="w-full bg-transparent px-3 py-2.5 text-xs font-medium  placeholder-zinc-600 focus:outline-none disabled:opacity-50"
                             />
                         </div>
                     </div>
@@ -203,7 +215,7 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
                                 placeholder="••••••••"
                                 required
                                 disabled={loading}
-                                className="w-full bg-transparent px-3 py-2.5 text-xs font-medium text-white placeholder-zinc-600 focus:outline-none disabled:opacity-50"
+                                className="w-full bg-transparent px-3 py-2.5 text-xs font-medium  placeholder-zinc-600 focus:outline-none disabled:opacity-50"
                             />
                             <button
                                 type="button"
