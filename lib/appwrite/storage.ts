@@ -43,3 +43,10 @@ export async function getResumeFile(fileId: string) {
         fileId,
     });
 }
+
+export async function downloadResumeFile(fileId: string) {
+    return appwriteStorage.getFileDownload({
+        bucketId: BUCKET_ID,
+        fileId,
+    });
+}

@@ -152,3 +152,34 @@ export async function viewResume(resumeId: string) {
 
     return response.blob();
 }
+
+export async function downloadResume(resumeId: string) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/download`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${idToken}`,
+                },
+            },
+        );
+
+    if (!response.ok) {
+        let message = "Unable to download resume.";
+
+        try {
+            const data = await response.json();
+
+            message = data.error || message;
+        } catch {
+            // Keep default message.
+            throw new Error(message);
+        }
+
+    }
+
+    return response.blob();
+}

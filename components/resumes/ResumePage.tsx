@@ -1,6 +1,6 @@
 "use client";
 
-import {getResumes, deleteResume, viewResume} from "@/lib/api/resumes";
+import {getResumes, deleteResume, viewResume, downloadResume} from "@/lib/api/resumes";
 import { useEffect, useMemo, useState } from "react";
 import {FileText, Plus, Search, Sparkles, UploadCloud,} from "lucide-react";
 import {Resume} from "@/utils/types";
@@ -213,8 +213,30 @@ export function ResumesPage() {
                                             }
                                         }}
 
-                                        onResumeDownload={(resume) => {
-                                            console.log("Download resume:", resume);
+                                        onResumeDownload={async (resume) => {
+                                            try {
+                                                const blob = await downloadResume(resume.id);
+
+                                                const url = URL.createObjectURL(blob);
+
+                                                const link = document.createElement("a");
+
+                                                link.href = url;
+                                                link.download = resume.fileName;
+
+                                                document.body.appendChild(link);
+
+                                                link.click();
+
+                                                link.remove();
+
+                                                URL.revokeObjectURL(url);
+                                            } catch (error) {
+                                                console.error(
+                                                    "Download resume error:",
+                                                    error,
+                                                );
+                                            }
                                         }}
 
                                         onDelete={(resume) => {
