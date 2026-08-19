@@ -1,6 +1,6 @@
 "use client";
 
-import { getResumes } from "@/lib/api/resumes";
+import {getResumes, deleteResume, viewResume} from "@/lib/api/resumes";
 import { useEffect, useMemo, useState } from "react";
 import {FileText, Plus, Search, Sparkles, UploadCloud,} from "lucide-react";
 import {Resume} from "@/utils/types";
@@ -13,6 +13,8 @@ export function ResumesPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [uploadOpen, setUploadOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<Resume | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     async function loadResumes() {
         try {
@@ -31,6 +33,31 @@ export function ResumesPage() {
             );
         } finally {
             setLoading(false);
+        }
+    }
+
+    async function handleDelete() {
+        if (!deleteTarget) {
+            return;
+        }
+
+        try {
+            setDeleting(true);
+            setError(null);
+
+            await deleteResume(deleteTarget.id);
+
+            setDeleteTarget(null);
+
+            await loadResumes();
+        } catch (error) {
+            setError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to delete resume.",
+            );
+        } finally {
+            setDeleting(false);
         }
     }
 
@@ -83,7 +110,7 @@ export function ResumesPage() {
                     <button
                         type="button"
                         onClick={() => setUploadOpen(true)}
-                        className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98]"
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98] cursor-pointer"
                     >
                         <Plus className="size-4" />
                         Upload Resume
@@ -109,7 +136,7 @@ export function ResumesPage() {
 
                 {/* Resume List Container */}
                 <div className="mt-8">
-                    <div className="rounded-[2.5rem] border border-zinc-800/80 bg-zinc-900/60 backdrop-blur-xl shadow-2xl overflow-hidden">
+                    <div className="rounded-[2.5rem] border border-zinc-800/80 bg-zinc-900/60 backdrop-blur-xl shadow-2xl">
                         <div className="border-b border-zinc-800/80 px-6 py-5 sm:px-8">
                             <h2 className="text-sm font-bold text-white">
                                 Your uploaded documents
@@ -165,6 +192,34 @@ export function ResumesPage() {
                                     <ResumeRow
                                         key={resume.id}
                                         resume={resume}
+
+                                        onAnalyze={(id) => {
+                                            console.log("Analyze resume:", id);
+                                        }}
+
+                                        onResumeView={async (resume) => {
+                                            try {
+                                                const blob = await viewResume(resume.id);
+
+                                                const url = URL.createObjectURL(blob);
+
+                                                window.open(url, "_blank");
+
+                                                setTimeout(() => {
+                                                    URL.revokeObjectURL(url);
+                                                }, 60_000);
+                                            } catch (error) {
+                                                console.error("View resume error:", error,);
+                                            }
+                                        }}
+
+                                        onResumeDownload={(resume) => {
+                                            console.log("Download resume:", resume);
+                                        }}
+
+                                        onDelete={(resume) => {
+                                            setDeleteTarget(resume);
+                                        }}
                                     />
                                 ))}
                             </div>

@@ -8,7 +8,7 @@ export function authErrorMessage(error: unknown): string {
 
     switch (code) {
         case "auth/email-already-in-use":
-            return "An account already exists with this email.";
+            return "An account already exists with this email. Please sign in";
 
         case "auth/invalid-email":
             return "Please enter a valid email address.";
@@ -18,6 +18,9 @@ export function authErrorMessage(error: unknown): string {
 
         case "auth/popup-closed-by-user":
             return "Google sign-in was cancelled.";
+
+        case "auth/invalid-password":
+            return "Please enter a valid password";
 
         default:
             return "Something went wrong. Please try again.";

@@ -1,26 +1,18 @@
-import {
-    AlertCircle,
-    CheckCircle2,
-    Clock,
-    FileText,
-    Loader2,
-    MoreHorizontal,
-    Sparkles,
-} from "lucide-react";
+'use client'
 
-type Resume = {
-    id: string;
-    fileName: string;
-    fileType: string;
-    fileSize: number;
-    status: "uploaded" | "processing" | "completed" | "failed";
-    createdAt: string | null;
-};
+import { FileText, MoreHorizontal, Sparkles } from "lucide-react";
+import { ResumeStatus } from "@/components/resumes/ResumeStatus";
+import { useState } from "react";
+import { ResumeMenu } from "@/components/resumes/ResumeMenu";
+import {Resume} from "@/utils/types";
 
 interface ResumeRowProps {
     resume: Resume;
     onAnalyze?: (id: string) => void;
     onMoreOptions?: (id: string) => void;
+    onDelete?: (resume: Resume) => void;
+    onResumeView?: (resume: Resume) => void | Promise<void>;
+    onResumeDownload?: (resume: Resume) => void | Promise<void>;
 }
 
 function formatFileSize(bytes: number) {
@@ -38,43 +30,19 @@ function formatDate(date: string | null) {
     }).format(new Date(date));
 }
 
-function StatusBadge({ status }: { status: Resume["status"] }) {
-    switch (status) {
-        case "completed":
-            return (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-400">
-          <CheckCircle2 className="size-3" />
-          Ready
-        </span>
-            );
-        case "processing":
-            return (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-0.5 text-[11px] font-semibold text-amber-400">
-          <Loader2 className="size-3 animate-spin" />
-          Processing
-        </span>
-            );
-        case "failed":
-            return (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/20 bg-rose-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-rose-400">
-          <AlertCircle className="size-3" />
-          Failed
-        </span>
-            );
-        case "uploaded":
-        default:
-            return (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800/80 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-300">
-          <Clock className="size-3 text-zinc-400" />
-          Uploaded
-        </span>
-            );
-    }
-}
+export function ResumeRow({
+                              resume,
+                              onAnalyze,
+                              onMoreOptions,
+                              onDelete,
+                              onResumeView,
+                              onResumeDownload,
+                          }: ResumeRowProps) {
+    const [menuOpen, setMenuOpen] = useState(false);
 
-export function ResumeRow({resume, onAnalyze, onMoreOptions,}: ResumeRowProps) {
     const isPdf =
         resume.fileType === "application/pdf" || resume.fileName.endsWith(".pdf");
+    const canAnalyze = resume.status === "completed";
 
     return (
         <div className="group flex flex-col gap-4 border-b border-zinc-800/60 px-6 py-4.5 transition-all duration-200 hover:bg-zinc-800/40 sm:flex-row sm:items-center sm:justify-between last:border-b-0">
@@ -89,7 +57,7 @@ export function ResumeRow({resume, onAnalyze, onMoreOptions,}: ResumeRowProps) {
                         <h3 className="truncate text-xs sm:text-sm font-bold text-white transition-colors group-hover:text-amber-300">
                             {resume.fileName}
                         </h3>
-                        <StatusBadge status={resume.status} />
+                        <ResumeStatus status={resume.status} />
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-zinc-400">
@@ -113,21 +81,34 @@ export function ResumeRow({resume, onAnalyze, onMoreOptions,}: ResumeRowProps) {
                 <button
                     type="button"
                     onClick={() => onAnalyze?.(resume.id)}
-                    disabled={resume.status === "processing"}
+                    aria-label="Analyze resume"
+                    disabled={!canAnalyze}
                     className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-zinc-950 shadow-md shadow-amber-500/5 transition-all hover:bg-amber-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     <Sparkles className="size-3.5" />
                     Analyze
                 </button>
 
-                <button
-                    type="button"
-                    onClick={() => onMoreOptions?.(resume.id)}
-                    aria-label="Resume options"
-                    className="flex size-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
-                >
-                    <MoreHorizontal className="size-4" />
-                </button>
+                {/* Added relative positioning container */}
+                <div className={`relative ${menuOpen ? "z-30" : "z-auto"}`}>
+                    <button
+                        type="button"
+                        aria-label="Resume options"
+                        aria-expanded={menuOpen}
+                        onClick={() => setMenuOpen((value) => !value)}
+                        className="flex size-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white cursor-pointer"
+                    >
+                        <MoreHorizontal className="size-4" />
+                    </button>
+
+                    <ResumeMenu
+                        menuOpen={menuOpen}
+                        setMenuOpen={setMenuOpen}
+                        onResumeView={onResumeView ? () => onResumeView(resume) : undefined}
+                        onResumeDownload={onResumeDownload ? () => onResumeDownload(resume) : undefined}
+                        onDelete={() => onDelete?.(resume)}
+                    />
+                </div>
             </div>
         </div>
     );

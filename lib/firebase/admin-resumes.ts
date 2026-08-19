@@ -69,3 +69,53 @@ export async function getUserResumes(
         };
     });
 }
+
+export async function getResumeById(
+    userId: string,
+    resumeId: string,
+): Promise<ServerResume | null> {
+    const resumeRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId);
+
+    const snapshot = await resumeRef.get();
+
+    if (!snapshot.exists) {
+        return null;
+    }
+
+    const data = snapshot.data();
+
+    if (!data) {
+        return null;
+    }
+
+    return {
+        id: snapshot.id,
+        userId: data.userId,
+        fileId: data.fileId,
+        fileName: data.fileName,
+        fileType: data.fileType,
+        fileSize: data.fileSize,
+        status: data.status,
+        createdAt:
+            data.createdAt?.toDate()?.toISOString() ?? null,
+        updatedAt:
+            data.updatedAt?.toDate()?.toISOString() ?? null,
+    };
+}
+
+export async function deleteResume(
+    userId: string,
+    resumeId: string,
+) {
+    const resumeRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId);
+
+    await resumeRef.delete();
+}

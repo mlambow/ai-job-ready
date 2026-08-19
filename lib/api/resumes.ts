@@ -1,5 +1,6 @@
 import { auth } from "@/lib/firebase/client";
 import {onAuthStateChanged} from "firebase/auth";
+import {Resume} from "@/utils/types";
 
 function waitForUser() {
 
@@ -26,8 +27,7 @@ function waitForUser() {
 export async function uploadResume(file: File) {
     const user = await waitForUser()
 
-    const idToken =
-        await user.getIdToken();
+    const idToken = await user.getIdToken();
 
     const formData = new FormData();
 
@@ -88,4 +88,67 @@ export async function getResumes() {
     }
 
     return data.resumes;
+}
+
+export async function deleteResume(
+    resumeId: string,
+) {
+    const user = await waitForUser();
+
+    const idToken =
+        await user.getIdToken();
+
+    const response = await fetch(
+        `/api/resumes/${resumeId}`,
+        {
+            method: "DELETE",
+
+            headers: {
+                Authorization:
+                    `Bearer ${idToken}`,
+            },
+
+            cache: "no-store",
+        },
+    );
+
+    const data =
+        await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error ||
+            "Failed to delete resume.",
+        );
+    }
+
+    return data;
+}
+
+export async function viewResume(resumeId: string) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response =
+        await fetch(
+            `/api/resumes/${resumeId}/view`,
+            {
+                headers: {
+                    Authorization:
+                        `Bearer ${idToken}`,
+                },
+            },
+        );
+
+    if (!response.ok) {
+        const data = await response.json();
+
+        throw new Error(
+            data.error ||
+            "Unable to view resume.",
+        );
+    }
+
+    return response.blob();
 }

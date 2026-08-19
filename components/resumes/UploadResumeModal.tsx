@@ -242,7 +242,7 @@ export function UploadResumeModal({
                         type="button"
                         onClick={handleClose}
                         disabled={uploading}
-                        className="rounded-full px-5 py-2.5 text-xs font-bold text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-full px-5 py-2.5 text-xs font-bold text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
