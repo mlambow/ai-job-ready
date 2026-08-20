@@ -43,9 +43,7 @@ export async function createResumeDocument(
     return resumeRef.id;
 }
 
-export async function getUserResumes(
-    userId: string,
-): Promise<ServerResume[]> {
+export async function getUserResumes(userId: string): Promise<ServerResume[]> {
     const snapshot = await adminDb
         .collection("users")
         .doc(userId)
@@ -70,10 +68,7 @@ export async function getUserResumes(
     });
 }
 
-export async function getResumeById(
-    userId: string,
-    resumeId: string,
-): Promise<ServerResume | null> {
+export async function getResumeById(userId: string, resumeId: string,): Promise<ServerResume | null> {
     const resumeRef = adminDb
         .collection("users")
         .doc(userId)
@@ -100,17 +95,12 @@ export async function getResumeById(
         fileType: data.fileType,
         fileSize: data.fileSize,
         status: data.status,
-        createdAt:
-            data.createdAt?.toDate()?.toISOString() ?? null,
-        updatedAt:
-            data.updatedAt?.toDate()?.toISOString() ?? null,
+        createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
+        updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
     };
 }
 
-export async function deleteResume(
-    userId: string,
-    resumeId: string,
-) {
+export async function deleteResume(userId: string, resumeId: string) {
     const resumeRef = adminDb
         .collection("users")
         .doc(userId)

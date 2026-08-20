@@ -6,6 +6,7 @@ import {FileText, Plus, Search, Sparkles, UploadCloud,} from "lucide-react";
 import {Resume} from "@/utils/types";
 import {ResumeRow} from "@/components/resumes/ResumeRow";
 import {UploadResumeModal} from "@/components/resumes/UploadResumeModal";
+import { DeleteResumeModal } from "@/components/resumes/DeleteResumeModal";
 
 export function ResumesPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -36,28 +37,30 @@ export function ResumesPage() {
         }
     }
 
-    async function handleDelete() {
+    async function handleDeleteResume() {
         if (!deleteTarget) {
             return;
         }
 
         try {
-            setDeleting(true);
-            setError(null);
-
-            await deleteResume(deleteTarget.id);
+            await deleteResume(
+                deleteTarget.id,
+            );
 
             setDeleteTarget(null);
 
             await loadResumes();
         } catch (error) {
+            console.error(
+                "Delete resume error:",
+                error,
+            );
+
             setError(
                 error instanceof Error
                     ? error.message
-                    : "Failed to delete resume.",
+                    : "Unable to delete resume.",
             );
-        } finally {
-            setDeleting(false);
         }
     }
 
@@ -251,6 +254,13 @@ export function ResumesPage() {
                         open={uploadOpen}
                         onClose={() => setUploadOpen(false)}
                         onUploaded={loadResumes}
+                    />
+
+                    <DeleteResumeModal
+                        resume={deleteTarget}
+                        open={deleteTarget !== null}
+                        onClose={() => setDeleteTarget(null)}
+                        onConfirm={handleDeleteResume}
                     />
 
                 </div>
