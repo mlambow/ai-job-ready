@@ -1,10 +1,12 @@
-import { Download, Eye, Trash2 } from "lucide-react";
+import {Download, Eye, RefreshCw, Trash2, History,} from "lucide-react";
 
 interface ResumeMenuProps {
     menuOpen: boolean;
     setMenuOpen: (open: boolean) => void;
     onResumeView?: () => void;
     onResumeDownload?: () => void;
+    onReplace?: () => void;
+    onVersionHistory?: () => void;
     onDelete: () => void;
 }
 
@@ -13,6 +15,8 @@ export function ResumeMenu({
                                setMenuOpen,
                                onResumeView,
                                onResumeDownload,
+                                onReplace,
+                                onVersionHistory,
                                onDelete,
                            }: ResumeMenuProps) {
     if (!menuOpen) return null;
@@ -55,7 +59,35 @@ export function ResumeMenu({
                     </button>
                 )}
 
-                {(onResumeView || onResumeDownload) && (
+                {onReplace && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setMenuOpen(false);
+                            onReplace();
+                        }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                        <RefreshCw className="size-4 text-amber-400" />
+                        <span className="whitespace-nowrap">Replace resume</span>
+                    </button>
+                )}
+
+                {onVersionHistory && (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setMenuOpen(false);
+                            onVersionHistory();
+                        }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+                    >
+                        <History className="size-4 text-zinc-400" />
+                        Version history
+                    </button>
+                )}
+
+                {(onResumeView || onResumeDownload || onReplace) && (
                     <div className="my-1 border-t border-zinc-800/80" />
                 )}
 

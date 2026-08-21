@@ -12,6 +12,8 @@ interface ResumeRowProps {
     onMoreOptions?: (id: string) => void;
     onDelete?: (resume: Resume) => void;
     onResumeView?: (resume: Resume) => void | Promise<void>;
+    onReplace?:(resume: Resume) => void | Promise<void>;
+    onVersionHistory?: (resume: Resume) => void | Promise<void>;
     onResumeDownload?: (resume: Resume) => void | Promise<void>;
 }
 
@@ -36,6 +38,8 @@ export function ResumeRow({
                               onMoreOptions,
                               onDelete,
                               onResumeView,
+                              onReplace,
+                              onVersionHistory,
                               onResumeDownload,
                           }: ResumeRowProps) {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -106,6 +110,8 @@ export function ResumeRow({
                         setMenuOpen={setMenuOpen}
                         onResumeView={onResumeView ? () => onResumeView(resume) : undefined}
                         onResumeDownload={onResumeDownload ? () => onResumeDownload(resume) : undefined}
+                        onReplace={onReplace ? () => onReplace(resume) : undefined}
+                        onVersionHistory={onVersionHistory ? () => onVersionHistory(resume) : undefined}
                         onDelete={() => onDelete?.(resume)}
                     />
                 </div>

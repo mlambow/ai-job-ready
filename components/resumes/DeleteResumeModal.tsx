@@ -109,7 +109,7 @@ export function DeleteResumeModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-full rounded-full border border-zinc-800/80 bg-zinc-800/40 px-5 py-2.5 text-xs font-bold text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-white sm:w-auto"
+                        className="w-full rounded-full border border-zinc-800/80 bg-zinc-800/40 px-5 py-2.5 text-xs font-bold text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-white sm:w-auto cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -120,7 +120,7 @@ export function DeleteResumeModal({
                             onConfirm();
                             onClose();
                         }}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-rose-500/30 bg-rose-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-rose-500/20 transition-all hover:bg-rose-600 active:scale-[0.98] sm:w-auto"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-rose-500/30 bg-rose-500 px-5 py-2.5 text-xs font-bold text-white shadow-lg shadow-rose-500/20 transition-all hover:bg-rose-600 active:scale-[0.98] sm:w-auto cursor-pointer"
                     >
                         <Trash2 className="size-3.5" />
                         Delete resume

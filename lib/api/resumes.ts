@@ -1,9 +1,7 @@
 import { auth } from "@/lib/firebase/client";
 import {onAuthStateChanged} from "firebase/auth";
-import {Resume} from "@/utils/types";
 
 function waitForUser() {
-
     return new Promise<NonNullable<typeof auth.currentUser>>(
         (resolve, reject) => {
             const unsubscribe = onAuthStateChanged(
@@ -90,9 +88,7 @@ export async function getResumes() {
     return data.resumes;
 }
 
-export async function deleteResume(
-    resumeId: string,
-) {
+export async function deleteResume(resumeId: string) {
     const user = await waitForUser();
 
     const idToken =
@@ -182,4 +178,64 @@ export async function downloadResume(resumeId: string) {
     }
 
     return response.blob();
+}
+
+export async function replaceResume(resumeId: string, file: File) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const formData = new FormData();
+
+    formData.append("file", file,);
+
+    const response =
+        await fetch(`/api/resumes/${resumeId}/versions`,
+            {
+                method: "POST",
+                headers: {Authorization: `Bearer ${idToken}`,},
+                body: formData,
+            },
+        );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error ||
+            "Failed to replace resume.",
+        );
+    }
+
+    return data;
+}
+
+export async function getResumeVersions(resumeId: string) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/versions`,
+        {
+            method: "GET",
+
+            headers: {
+                Authorization:
+                    `Bearer ${idToken}`,
+            },
+
+            cache: "no-store",
+        },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error ||
+            "Failed to load resume versions.",
+        );
+    }
+
+    return data.versions;
 }

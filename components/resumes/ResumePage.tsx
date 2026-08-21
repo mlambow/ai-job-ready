@@ -7,6 +7,8 @@ import {Resume} from "@/utils/types";
 import {ResumeRow} from "@/components/resumes/ResumeRow";
 import {UploadResumeModal} from "@/components/resumes/UploadResumeModal";
 import { DeleteResumeModal } from "@/components/resumes/DeleteResumeModal";
+import { ReplaceResumeModal } from "@/components/resumes/ReplaceResumeModal";
+import {VersionHistoryModal} from "@/components/resumes/VersionHistoryModal";
 
 export function ResumesPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -15,7 +17,8 @@ export function ResumesPage() {
     const [error, setError] = useState<string | null>(null);
     const [uploadOpen, setUploadOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<Resume | null>(null);
-    const [deleting, setDeleting] = useState(false);
+    const [replaceResume, setReplaceResume] = useState<Resume | null>(null);
+    const [versionHistoryResume, setVersionHistoryResume] = useState<Resume | null>(null);
 
     async function loadResumes() {
         try {
@@ -183,7 +186,8 @@ export function ResumesPage() {
 
                                 <button
                                     type="button"
-                                    className="mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800 px-6 py-3 text-xs font-bold text-white transition-all hover:border-amber-400/40 hover:bg-zinc-700 active:scale-[0.98]"
+                                    onClick={() => setUploadOpen(true)}
+                                    className="mt-6 inline-flex items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800 px-6 py-3 text-xs font-bold text-white transition-all hover:border-amber-400/40 hover:bg-zinc-700 active:scale-[0.98] cursor-pointer"
                                 >
                                     <UploadCloud className="size-4 text-amber-400" />
                                     Upload your first resume
@@ -242,6 +246,14 @@ export function ResumesPage() {
                                             }
                                         }}
 
+                                        onReplace={(resume) =>
+                                            setReplaceResume(resume)
+                                        }
+
+                                        onVersionHistory={(resume) =>
+                                            setVersionHistoryResume(resume)
+                                        }
+
                                         onDelete={(resume) => {
                                             setDeleteTarget(resume);
                                         }}
@@ -261,6 +273,19 @@ export function ResumesPage() {
                         open={deleteTarget !== null}
                         onClose={() => setDeleteTarget(null)}
                         onConfirm={handleDeleteResume}
+                    />
+
+                    <ReplaceResumeModal
+                        open={replaceResume !== null}
+                        resume={replaceResume}
+                        onClose={() => setReplaceResume(null)}
+                        onReplaced={loadResumes}
+                    />
+
+                    <VersionHistoryModal
+                        open={versionHistoryResume !== null}
+                        resume={versionHistoryResume}
+                        onClose={() => setVersionHistoryResume(null)}
                     />
 
                 </div>
