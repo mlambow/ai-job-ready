@@ -239,3 +239,69 @@ export async function getResumeVersions(resumeId: string) {
 
     return data.versions;
 }
+
+export async function viewResumeVersion(resumeId: string, versionId: string,) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/versions/${versionId}/view`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${idToken}`,
+            },
+        },
+    );
+
+    if (!response.ok) {
+        let message = "Unable to view resume version.";
+
+        try {
+            const data = await response.json();
+
+            message = data.error || message;
+        } catch {
+            // Keep default message.
+        }
+
+        throw new Error(message);
+    }
+
+    return response.blob();
+}
+
+export async function downloadResumeVersion(
+    resumeId: string,
+    versionId: string,
+) {
+    const user = await waitForUser();
+
+    const idToken =
+        await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/versions/${versionId}/download`,
+        {
+            headers: {
+                Authorization:
+                    `Bearer ${idToken}`,
+            },
+        },
+    );
+
+    if (!response.ok) {
+        let message = "Unable to download resume version.";
+
+        try {
+            const data = await response.json();
+
+            message = data.error || message;
+        } catch {
+            // Keep default message.
+        }
+
+        throw new Error(message);
+    }
+
+    return response.blob();
+}

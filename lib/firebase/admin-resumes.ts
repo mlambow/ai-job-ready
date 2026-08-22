@@ -249,3 +249,46 @@ export async function deleteResume(userId: string, resumeId: string) {
 
     await resumeRef.delete();
 }
+
+export async function getResumeVersionById(userId: string, resumeId: string, versionId: string,
+) {
+    const versionRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId)
+        .collection("versions")
+        .doc(versionId);
+
+    const snapshot = await versionRef.get();
+
+    if (!snapshot.exists) {
+        return null;
+    }
+
+    const data = snapshot.data();
+
+    if (!data) {
+        return null;
+    }
+
+    return {
+        id: snapshot.id,
+        resumeId: data.resumeId,
+        userId: data.userId,
+        fileId: data.fileId,
+        fileName: data.fileName,
+        fileType: data.fileType,
+        fileSize: data.fileSize,
+        versionNumber: data.versionNumber,
+        status: data.status,
+        createdAt:
+            data.createdAt
+                ?.toDate()
+                ?.toISOString() ?? null,
+        updatedAt:
+            data.updatedAt
+                ?.toDate()
+                ?.toISOString() ?? null,
+    };
+}
