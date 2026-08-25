@@ -189,14 +189,13 @@ export async function replaceResume(resumeId: string, file: File) {
 
     formData.append("file", file,);
 
-    const response =
-        await fetch(`/api/resumes/${resumeId}/versions`,
-            {
-                method: "POST",
-                headers: {Authorization: `Bearer ${idToken}`,},
-                body: formData,
-            },
-        );
+    const response = await fetch(`/api/resumes/${resumeId}/versions`,
+        {
+            method: "POST",
+            headers: {Authorization: `Bearer ${idToken}`,},
+            body: formData,
+        },
+    );
 
     const data = await response.json();
 
@@ -271,20 +270,15 @@ export async function viewResumeVersion(resumeId: string, versionId: string,) {
     return response.blob();
 }
 
-export async function downloadResumeVersion(
-    resumeId: string,
-    versionId: string,
-) {
+export async function downloadResumeVersion(resumeId: string, versionId: string,) {
     const user = await waitForUser();
 
-    const idToken =
-        await user.getIdToken();
+    const idToken = await user.getIdToken();
 
     const response = await fetch(`/api/resumes/${resumeId}/versions/${versionId}/download`,
         {
             headers: {
-                Authorization:
-                    `Bearer ${idToken}`,
+                Authorization: `Bearer ${idToken}`,
             },
         },
     );
@@ -304,4 +298,43 @@ export async function downloadResumeVersion(
     }
 
     return response.blob();
+}
+
+export async function processResume(resumeId: string) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/process`,
+        {
+            method: "POST",
+            headers: {Authorization: `Bearer ${idToken}`},
+        },
+    );
+
+    const contentType = response.headers.get("content-type");
+
+    if (!contentType?.includes("application/json")) {
+        const text = await response.text();
+
+        console.error(
+            "Non-JSON response:",
+            {
+                status: response.status,
+                text,
+            },
+        );
+
+        throw new Error(
+            `Failed to process resume. Server returned status ${response.status}.`
+        );
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to process resume.");
+    }
+
+    return data;
 }

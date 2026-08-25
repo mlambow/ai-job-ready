@@ -25,7 +25,7 @@ const statusConfig: Record<
         icon: Loader2,
     },
     completed: {
-        label: "Ready",
+        label: "Completed",
         className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
         icon: CheckCircle2,
     },

@@ -30,7 +30,7 @@ export function ResumeMenu({
             />
 
             {/* Dropdown Menu Container */}
-            <div className="absolute right-0 top-full z-40 mt-2 w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-zinc-800/90 bg-zinc-900/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
+            <div className="absolute right-0 bottom-full z-40 mt-2 w-56 max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl border border-zinc-800/90 bg-zinc-900/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150">
                 {onResumeView && (
                     <button
                         type="button"
@@ -82,7 +82,7 @@ export function ResumeMenu({
                         }}
                         className="flex w-full items-center gap-2.5 px-4 py-2 text-xs font-semibold text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
                     >
-                        <History className="size-4 text-zinc-400" />
+                        <History className="size-4 text-amber-400" />
                         Version history
                     </button>
                 )}

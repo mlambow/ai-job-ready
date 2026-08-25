@@ -3,7 +3,7 @@
 import { ChangeEvent, DragEvent, useRef, useState } from "react";
 import { AlertCircle, FileText, Loader2, Sparkles, Upload, X } from "lucide-react";
 
-import { uploadResume } from "@/lib/api/resumes";
+import {processResume, uploadResume} from "@/lib/api/resumes";
 
 interface UploadResumeModalProps {
     open: boolean;
@@ -18,10 +18,7 @@ const ACCEPTED_TYPES = [
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ];
 
-export function UploadResumeModal({
-                                      open,
-                                      onClose,
-                                      onUploaded,
+export function UploadResumeModal({open, onClose, onUploaded,
                                   }: UploadResumeModalProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -98,12 +95,28 @@ export function UploadResumeModal({
             setUploading(true);
             setError(null);
 
-            await uploadResume(file);
+            const result = await uploadResume(file);
 
             setFile(null);
 
             onUploaded();
+
             onClose();
+
+            // Start processing after the resume
+            // has been uploaded successfully.
+            processResume(result.file.fileId)
+                .then(async () => {
+                    onUploaded();
+                })
+                .catch(async (error) => {
+                    console.error(
+                        "Resume processing failed:",
+                        error,
+                    );
+
+                    onUploaded();
+                });
         } catch (error) {
             setError(
                 error instanceof Error

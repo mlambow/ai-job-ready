@@ -10,7 +10,7 @@ import {
     UploadCloud,
     X,
 } from "lucide-react";
-import { replaceResume } from "@/lib/api/resumes";
+import {processResume, replaceResume} from "@/lib/api/resumes";
 import { Resume } from "@/utils/types";
 
 interface ReplaceResumeModalProps {
@@ -120,7 +120,9 @@ export function ReplaceResumeModal({
             setUploading(true);
             setError(null);
 
-            await replaceResume(resume.id, file);
+            const result = await replaceResume(resume.id, file);
+
+            await processResume(result.resumeId)
 
             resetState();
             onClose();

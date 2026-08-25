@@ -8,7 +8,7 @@ import {Resume} from "@/utils/types";
 
 interface ResumeRowProps {
     resume: Resume;
-    onAnalyze?: (id: string) => void;
+    onAnalyze?: (resume: Resume) => void;
     onMoreOptions?: (id: string) => void;
     onDelete?: (resume: Resume) => void;
     onResumeView?: (resume: Resume) => void | Promise<void>;
@@ -35,7 +35,6 @@ function formatDate(date: string | null) {
 export function ResumeRow({
                               resume,
                               onAnalyze,
-                              onMoreOptions,
                               onDelete,
                               onResumeView,
                               onReplace,
@@ -84,10 +83,10 @@ export function ResumeRow({
             <div className="flex items-center gap-3 sm:shrink-0">
                 <button
                     type="button"
-                    onClick={() => onAnalyze?.(resume.id)}
+                    onClick={() => onAnalyze?.(resume)}
                     aria-label="Analyze resume"
                     disabled={!canAnalyze}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-zinc-950 shadow-md shadow-amber-500/5 transition-all hover:bg-amber-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-zinc-950 shadow-md shadow-amber-500/5 transition-all hover:bg-amber-300 active:scale-[0.98] disabled:opacity-50 hover:cursor-pointer disabled:cursor-not-allowed"
                 >
                     <Sparkles className="size-3.5" />
                     Analyze
