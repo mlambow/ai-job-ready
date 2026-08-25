@@ -45,8 +45,10 @@ export async function getResumeFile(fileId: string) {
 }
 
 export async function downloadResumeFile(fileId: string) {
-    return appwriteStorage.getFileDownload({
+    const file = await appwriteStorage.getFileDownload({
         bucketId: BUCKET_ID,
         fileId,
     });
+
+    return Buffer.from(file);
 }

@@ -3,40 +3,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebase/admin";
 import {getResumeById, createResumeVersion, getResumeVersions} from "@/lib/firebase/admin-resumes";
 import {uploadResume, deleteResumeFile} from "@/lib/appwrite/storage";
+import {verifyFirebaseToken} from "@/lib/firebase/verify-token";
 
 export async function POST(request: NextRequest,
-    {params}: {
-        params: Promise<{ resumeId: string; }>;
-    },
+    {params}: { params: Promise<{ resumeId: string; }>; },
 ) {
     let uploadedFileId: string | null = null;
 
     try {
-        // 1. Get authentication token
-
-        const authorization = request.headers.get("Authorization");
-
-        if (
-            !authorization ||
-            !authorization.startsWith(
-                "Bearer ",
-            )
-        ) {
-            return NextResponse.json(
-                {
-                    error: "Unauthorized.",
-                },
-                {
-                    status: 401,
-                },
-            );
-        }
-
-        const idToken = authorization.substring("Bearer ".length);
-
         // 2. Verify Firebase user
 
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        const decodedToken = await verifyFirebaseToken(request);
 
         const userId = decodedToken.uid;
 

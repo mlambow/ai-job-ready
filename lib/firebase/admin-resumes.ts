@@ -44,6 +44,7 @@ export async function createResumeDocument(userId: string,
         fileType: data.fileType,
         fileSize: data.fileSize,
         status: "uploaded",
+        extractedText: null,
         createdAt: now,
         updatedAt: now,
     });
@@ -128,11 +129,11 @@ export async function createResumeVersion(userId: string, resumeId: string,
         async (transaction) => {
             // 1. Get the parent resume
 
-            const resumeSnapshot = await transaction.get(resumeRef,);
+            const resumeSnapshot = await transaction.get(resumeRef);
 
             if (!resumeSnapshot.exists) {
                 throw new Error(
-                    "Resume not found.",
+                    "Resume not found."
                 );
             }
 
@@ -164,9 +165,10 @@ export async function createResumeVersion(userId: string, resumeId: string,
                     fileSize: data.fileSize,
                     versionNumber,
                     status: "uploaded",
+                    extractedText: null,
                     createdAt: FieldValue.serverTimestamp(),
                     updatedAt: FieldValue.serverTimestamp(),
-                },
+                }
             );
 
             // 5. Update parent resume
@@ -181,17 +183,16 @@ export async function createResumeVersion(userId: string, resumeId: string,
                     fileType: data.fileType,
                     fileSize: data.fileSize,
                     status: "uploaded",
-                    updatedAt: FieldValue.serverTimestamp(),
-                },
+                    updatedAt: FieldValue.serverTimestamp()
+                }
             );
 
             return {
                 versionId:
                 versionRef.id,
-
-                versionNumber,
+                versionNumber
             };
-        },
+        }
     );
 }
 
@@ -224,6 +225,7 @@ export async function getResumeVersions(userId: string, resumeId: string,
                 fileType: data.fileType,
                 fileSize: data.fileSize,
                 status: data.status,
+                extractedText: data.extractedText ?? null,
                 createdAt:
                     data.createdAt
                         ?.toDate()
@@ -240,14 +242,75 @@ export async function getResumeVersions(userId: string, resumeId: string,
     );
 }
 
-export async function deleteResume(userId: string, resumeId: string) {
+export async function getDeletionData(userId: string, resumeId: string): Promise<{
+    resumeRef: FirebaseFirestore.DocumentReference;
+    resume: ServerResume;
+    versions: ServerResumeVersion[];
+}> {
     const resumeRef = adminDb
         .collection("users")
         .doc(userId)
         .collection("resumes")
         .doc(resumeId);
 
-    await resumeRef.delete();
+    const resumeSnapshot = await resumeRef.get();
+
+    if(!resumeSnapshot.exists) {
+        throw new Error("Resume not found.");
+    }
+
+    const resumeData = resumeSnapshot.data();
+
+    if (!resumeData) {
+        throw new Error(
+            "Resume data not found.",
+        );
+    }
+
+    const versionsSnapshot = await resumeRef
+        .collection("versions")
+        .get()
+
+    const versions: ServerResumeVersion[] =
+        versionsSnapshot.docs.map(
+            (doc) => {
+                const data = doc.data();
+
+                return {
+                    id: doc.id,
+                    resumeId: data.resumeId,
+                    userId: data.userId,
+                    versionNumber:
+                    data.versionNumber,
+                    fileId: data.fileId,
+                    fileName: data.fileName,
+                    fileType: data.fileType,
+                    fileSize: data.fileSize,
+                    status: data.status,
+                    createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
+                    updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
+                };
+            },
+        );
+
+    const resume: ServerResume = {
+        id: resumeSnapshot.id,
+        userId: resumeData.userId,
+        fileId: resumeData.fileId,
+        fileName: resumeData.fileName,
+        fileType: resumeData.fileType,
+        fileSize: resumeData.fileSize,
+        currentVersionId: resumeData.currentVersionId,
+        status: resumeData.status,
+        createdAt: resumeData.createdAt?.toDate()?.toISOString() ?? null,
+        updatedAt: resumeData.updatedAt?.toDate()?.toISOString() ?? null,
+    };
+
+    return {
+        resumeRef,
+        resume,
+        versions,
+    };
 }
 
 export async function getResumeVersionById(userId: string, resumeId: string, versionId: string,
@@ -272,6 +335,12 @@ export async function getResumeVersionById(userId: string, resumeId: string, ver
         return null;
     }
 
+    console.log("Looking for version:", {
+        'UserId' :data.userId,
+        'ResumeId': data.resumeId,
+        'VersionId': data.versionId,
+    });
+
     return {
         id: snapshot.id,
         resumeId: data.resumeId,
@@ -282,6 +351,7 @@ export async function getResumeVersionById(userId: string, resumeId: string, ver
         fileSize: data.fileSize,
         versionNumber: data.versionNumber,
         status: data.status,
+        extractedText: data.extractedText ?? null,
         createdAt:
             data.createdAt
                 ?.toDate()
@@ -291,4 +361,92 @@ export async function getResumeVersionById(userId: string, resumeId: string, ver
                 ?.toDate()
                 ?.toISOString() ?? null,
     };
+}
+
+export async function markResumeVersionProcessing(
+    userId: string,
+    resumeId: string,
+    versionId: string,
+) {
+    const versionRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId)
+        .collection("versions")
+        .doc(versionId);
+
+    await versionRef.update({
+        status: "processing",
+        updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    // update the parent resume
+    const resumeRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId);
+
+    await resumeRef.update({
+        status: "processing",
+        updatedAt: FieldValue.serverTimestamp(),
+    });
+}
+
+export async function completeResumeVersionProcessing(userId: string, resumeId: string, versionId: string, extractedText: string,) {
+    const versionRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId)
+        .collection("versions")
+        .doc(versionId);
+
+    await versionRef.update({
+        status: "completed",
+        extractedText,
+        updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    const resumeRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId);
+
+    await resumeRef.update({
+        status: "completed",
+        updatedAt: FieldValue.serverTimestamp(),
+    });
+}
+
+export async function failResumeVersionProcessing(
+    userId: string,
+    resumeId: string,
+    versionId: string,
+) {
+    const versionRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId)
+        .collection("versions")
+        .doc(versionId);
+
+    await versionRef.update({
+        status: "failed",
+        updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    const resumeRef = adminDb
+        .collection("users")
+        .doc(userId)
+        .collection("resumes")
+        .doc(resumeId);
+
+    await resumeRef.update({
+        status: "failed",
+        updatedAt: FieldValue.serverTimestamp(),
+    });
 }
