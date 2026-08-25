@@ -12,22 +12,17 @@ const ALLOWED_TYPES = [
 const MAX_FILE_SIZE =
     10 * 1024 * 1024; // 10 MB
 
-export async function POST(
-    request: Request,
-) {
+export async function POST(request: Request) {
     try {
         // 1. Verify Firebase user
-        const decodedToken =
-            await verifyFirebaseToken(request);
+        const decodedToken = await verifyFirebaseToken(request);
 
         const userId = decodedToken.uid;
 
         // 2. Read uploaded file
-        const formData =
-            await request.formData();
+        const formData = await request.formData();
 
-        const file =
-            formData.get("file");
+        const file = formData.get("file");
 
         if (!(file instanceof File)) {
             return NextResponse.json(
@@ -53,18 +48,14 @@ export async function POST(
         if (file.size > MAX_FILE_SIZE) {
             return NextResponse.json(
                 {
-                    error:
-                        "Resume must be smaller than 10 MB.",
+                    error: "Resume must be smaller than 10 MB.",
                 },
                 { status: 400 },
             );
         }
 
         // 5. Upload to Appwrite
-        const uploaded =
-            await uploadResume(
-                file,
-            );
+        const uploaded = await uploadResume(file);
 
         await createResumeDocument(
             userId,
@@ -87,10 +78,7 @@ export async function POST(
         );
 
         return NextResponse.json(
-            {
-                error:
-                    "Unable to upload resume.",
-            },
+            {error: "Unable to upload resume."},
             { status: 500 },
         );
     }

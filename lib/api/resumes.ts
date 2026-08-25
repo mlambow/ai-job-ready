@@ -338,3 +338,39 @@ export async function processResume(resumeId: string) {
 
     return data;
 }
+
+export async function analyzeResume(resumeId: string,
+    data: {
+        jobTitle: string;
+        companyName?: string;
+        jobDescription: string;
+    },
+) {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/analyses`,
+        {
+            method: "POST",
+
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify(data),
+        },
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            responseData.error ||
+            "Failed to analyze resume.",
+        );
+    }
+
+    return responseData;
+}

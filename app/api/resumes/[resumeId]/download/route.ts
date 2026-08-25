@@ -4,8 +4,7 @@ import { verifyFirebaseToken } from "@/lib/firebase/verify-token";
 import { getResumeById } from "@/lib/firebase/admin-resumes";
 import { downloadResumeFile } from "@/lib/appwrite/storage";
 
-export async function GET(
-    request: Request,
+export async function GET(request: Request,
     context: {
         params: Promise<{
             resumeId: string;
@@ -13,19 +12,13 @@ export async function GET(
     },
 ) {
     try {
-        const decodedToken =
-            await verifyFirebaseToken(request);
+        const decodedToken = await verifyFirebaseToken(request);
 
         const userId = decodedToken.uid;
 
-        const { resumeId } =
-            await context.params;
+        const { resumeId } = await context.params;
 
-        const resume =
-            await getResumeById(
-                userId,
-                resumeId,
-            );
+        const resume = await getResumeById(userId, resumeId,);
 
         if (!resume) {
             return NextResponse.json(
