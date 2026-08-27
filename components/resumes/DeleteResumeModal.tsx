@@ -81,7 +81,7 @@ export function DeleteResumeModal({ open, deleting, error, resume, onClose, onCo
                         <h3 id="delete-modal-title" className="text-lg font-extrabold text-white">
                             Delete this resume?
                         </h3>
-                        <h5 className='text-base font-semibold text-white'>
+                        <h5 className='text-sm font-semibold text-zinc-300'>
                             You are about to delete all resumes and versions associated with this resume.
                         </h5>
                         <p className="text-xs leading-relaxed text-zinc-400">

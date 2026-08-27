@@ -65,6 +65,25 @@ export async function DELETE(request: NextRequest,
             },
         );
 
+        //Delete all analysis
+        const analysisRef =
+            adminDb
+                .collection("users")
+                .doc(userId)
+                .collection("resumes")
+                .doc(resumeId)
+                .collection("analysis");
+
+        const analysisSnapshot = await analysisRef.get();
+
+        const allBatch = adminDb.batch();
+
+        analysisSnapshot.docs.forEach(
+            (doc) => {
+                allBatch.delete(doc.ref);
+            },
+        );
+
         //5. Delete parent resume
 
         batch.delete(
@@ -74,8 +93,7 @@ export async function DELETE(request: NextRequest,
         await batch.commit();
 
         return NextResponse.json({
-            message:
-                "Resume deleted successfully.",
+            message: "Resume deleted successfully.",
         });
     } catch (error) {
         console.error(

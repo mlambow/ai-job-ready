@@ -1,5 +1,6 @@
 import { auth } from "@/lib/firebase/client";
 import {onAuthStateChanged} from "firebase/auth";
+import {ResumeAnalysis, ResumeVersion} from "@/utils/types";
 
 function waitForUser() {
     return new Promise<NonNullable<typeof auth.currentUser>>(
@@ -390,32 +391,39 @@ export async function analyzeResume(resumeId: string,
     return responseData;
 }
 
-export async  function getResumeAnalyses(resumeId: string) {
+export async function getResumeAnalysis(
+    resumeId: string,
+): Promise<ResumeAnalysis> {
     const user = await waitForUser();
-    const idToken = await user.getIdToken()
 
-    const response = await fetch(`/api/resumes/${resumeId}/analyses`, {
-        method: "GET",
-        headers: {Authorization: `Bearer ${idToken}`},
-    })
+    const idToken = await user.getIdToken();
 
-    const data = await response.json()
+    const response = await fetch(
+        `/api/resumes/${resumeId}/analysis`,
+        {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+        },
+    );
+
+    const data = await response.json();
 
     if (!response.ok) {
         throw new Error(
-            data.error ||
-            "Failed to load resume analyses.",
+            data.error || "Failed to get resume analysis.",
         );
     }
 
-    return data;
+    return data.analysis;
 }
 
 export async function getResumeAnalysisById(resumeId: string, analysisId: string) {
     const user = await waitForUser();
     const idToken = await user.getIdToken()
 
-    const response = await fetch(`/api/resumes/${resumeId}/analyses/${analysisId}`, {
+    const response = await fetch(`/api/resumes/${resumeId}/analysis/${analysisId}`, {
         method: "GET",
         headers: {Authorization: `Bearer ${idToken}`},
     })

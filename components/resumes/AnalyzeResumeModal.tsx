@@ -56,7 +56,7 @@ export function AnalyzeResumeModal({
             onAnalyze?.()
             onClose()
 
-            router.push(`/resumes/${resume.id}/analyses/${result.analysisId}`,);
+            router.push(`/resumes/${resume.id}/analysis/${result.analysisId}`,);
         } catch (error) {
             setError(
                 error instanceof Error

@@ -48,45 +48,25 @@ interface ToastNotification {
 
 export function ResumesPage() {
     const [searchQuery, setSearchQuery] = useState("");
-
     const [resumes, setResumes] = useState<Resume[]>([]);
-
     const [
         currentResumeVersions,
         setCurrentResumeVersions,
     ] = useState<Record<string, ResumeVersion>>({});
-
     const [loading, setLoading] = useState(true);
-
-    const [error, setError] =
-        useState<string | null>(null);
-
-    const [deleteError, setDeleteError] =
-        useState<string | null>(null);
-
-    const [deleting, setDeleting] =
-        useState(false);
-
-    const [uploadOpen, setUploadOpen] =
-        useState(false);
-
-    const [deleteTarget, setDeleteTarget] =
-        useState<Resume | null>(null);
-
-    const [replaceResume, setReplaceResume] =
-        useState<Resume | null>(null);
-
+    const [error, setError] = useState<string | null>(null);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const [uploadOpen, setUploadOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<Resume | null>(null);
+    const [replaceResume, setReplaceResume] = useState<Resume | null>(null);
     const [
         versionHistoryResume,
         setVersionHistoryResume,
     ] = useState<Resume | null>(null);
-
-    const [toast, setToast] =
-        useState<ToastNotification | null>(null);
-
-    const [analyzeResume, setAnalyzeResume] =
-        useState<Resume | null>(null);
-
+    const [toast, setToast] = useState<ToastNotification | null>(null);
+    const [analyzeResume, setAnalyzeResume] = useState<Resume | null>(null);
+    const [analysisResume, setAnalysisResume] = useState<Resume | null>(null);
     const router = useRouter();
 
     function showToast(

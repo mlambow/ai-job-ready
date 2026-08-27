@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
-import {ServerResume, ServerResumeVersion} from "@/utils/types";
+import {AnalysisStatus, ServerResume, ServerResumeAnalysis, ServerResumeVersion} from "@/utils/types";
 
 export async function createResumeDocument(userId: string,
     data: {
@@ -246,6 +246,7 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
     resumeRef: FirebaseFirestore.DocumentReference;
     resume: ServerResume;
     versions: ServerResumeVersion[];
+    analysis: ServerResumeAnalysis[];
 }> {
     const resumeRef = adminDb
         .collection("users")
@@ -267,9 +268,39 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
         );
     }
 
+    const analysisSnapshot = await resumeRef
+        .collection("analysis")
+        .get()
+
     const versionsSnapshot = await resumeRef
         .collection("versions")
         .get()
+
+    const analysis: ServerResumeAnalysis[] =
+        analysisSnapshot.docs.map(
+            (doc) => {
+                const data = doc.data()
+
+                return {
+                    id: data.id,
+                    userId: data.userId,
+                    resumeId: data.resumeId,
+                    versionId: data.versionId,
+                    jobTitle: data.jobTitle,
+                    companyName: data.companyName,
+                    jobDescription: data.jobDescription,
+                    analysisStatus: data.analysisStatus,
+                    atsScore: data.atsScore,
+                    jobMatchScore: data.jobMatchScore,
+                    keywordAnalysis: data.keywordAnalysis,
+                    strengths: data.strengths,
+                    improvements: data.improvements,
+                    summary: data.summary,
+                    createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
+                    updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
+                }
+            }
+        )
 
     const versions: ServerResumeVersion[] =
         versionsSnapshot.docs.map(
@@ -312,6 +343,7 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
         resumeRef,
         resume,
         versions,
+        analysis,
     };
 }
 

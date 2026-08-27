@@ -9,7 +9,7 @@ export async function getResumeAnalysisById(userId: string, resumeId: string, an
         .doc(userId)
         .collection("resumes")
         .doc(resumeId)
-        .collection("analyses")
+        .collection("analysis")
         .doc(analysisId);
 
     const snapshot = await analysisRef.get();
@@ -49,9 +49,7 @@ export async function getResumeAnalysisById(userId: string, resumeId: string, an
     };
 }
 
-export async function createAnalysisDocument(
-    userId: string,
-    resumeId: string,
+export async function createAnalysisDocument(userId: string, resumeId: string,
     data: {
         versionId: string;
         jobTitle: string;
@@ -66,7 +64,7 @@ export async function createAnalysisDocument(
         .doc(resumeId);
 
     const analysisRef = resumeRef
-        .collection("analyses")
+        .collection("analysis")
         .doc();
 
     const versionRef = resumeRef
@@ -122,7 +120,7 @@ export async function completeAnalysis(
         .doc(resumeId);
 
     const analysisRef = resumeRef
-        .collection("analyses")
+        .collection("analysis")
         .doc(analysisId);
 
     // Get the analysis so we know its versionId
@@ -175,7 +173,7 @@ export async function failAnalysis(userId: string, resumeId: string, analysisId:
         .doc(userId)
         .collection("resumes")
         .doc(resumeId)
-        .collection("analyses")
+        .collection("analysis")
         .doc(analysisId);
 
     await analysisRef.update({
@@ -190,7 +188,7 @@ export async function getResumeAnalysis(userId: string, resumeId: string): Promi
         .doc(userId)
         .collection("resumes")
         .doc(resumeId)
-        .collection("analyses")
+        .collection("analysis")
         .orderBy("createdAt", "desc")
         .get()
 
