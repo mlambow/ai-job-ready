@@ -29,25 +29,20 @@ export async function uploadResume(file: File) {
 
     const formData = new FormData();
 
-    formData.append(
-        "file",
-        file,
-    );
+    formData.append("file", file,);
 
-    const response =
-        await fetch(
-            "/api/resumes/upload",
-            {
-                method: "POST",
+    const response = await fetch("/api/resumes/upload",
+        {
+            method: "POST",
 
-                headers: {
-                    Authorization:
-                        `Bearer ${idToken}`,
-                },
-
-                body: formData,
+            headers: {
+                Authorization:
+                    `Bearer ${idToken}`,
             },
-        );
+
+            body: formData,
+        },
+    );
 
     const data =
         await response.json();
@@ -217,12 +212,7 @@ export async function getResumeVersions(resumeId: string) {
     const response = await fetch(`/api/resumes/${resumeId}/versions`,
         {
             method: "GET",
-
-            headers: {
-                Authorization:
-                    `Bearer ${idToken}`,
-            },
-
+            headers: {Authorization: `Bearer ${idToken}`},
             cache: "no-store",
         },
     );
@@ -237,6 +227,32 @@ export async function getResumeVersions(resumeId: string) {
     }
 
     return data.versions;
+}
+
+export async function getResumeVersionById(resumeId: string, versionId: string,
+): Promise<ResumeVersion> {
+    const user = await waitForUser();
+
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(`/api/resumes/${resumeId}/versions/${versionId}`,
+        {
+            method: "GET",
+            headers: {Authorization: `Bearer ${idToken}`},
+            cache: "no-store",
+        },
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error ||
+            "Failed to get resume version.",
+        );
+    }
+
+    return data.version;
 }
 
 export async function viewResumeVersion(resumeId: string, versionId: string,) {
@@ -350,10 +366,9 @@ export async function analyzeResume(resumeId: string,
 
     const idToken = await user.getIdToken();
 
-    const response = await fetch(`/api/resumes/${resumeId}/analyses`,
+    const response = await fetch(`/api/resumes/${resumeId}/analyze`,
         {
             method: "POST",
-
             headers: {
                 Authorization: `Bearer ${idToken}`,
                 "Content-Type": "application/json",
@@ -373,4 +388,45 @@ export async function analyzeResume(resumeId: string,
     }
 
     return responseData;
+}
+
+export async  function getResumeAnalyses(resumeId: string) {
+    const user = await waitForUser();
+    const idToken = await user.getIdToken()
+
+    const response = await fetch(`/api/resumes/${resumeId}/analyses`, {
+        method: "GET",
+        headers: {Authorization: `Bearer ${idToken}`},
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        throw new Error(
+            data.error ||
+            "Failed to load resume analyses.",
+        );
+    }
+
+    return data;
+}
+
+export async function getResumeAnalysisById(resumeId: string, analysisId: string) {
+    const user = await waitForUser();
+    const idToken = await user.getIdToken()
+
+    const response = await fetch(`/api/resumes/${resumeId}/analyses/${analysisId}`, {
+        method: "GET",
+        headers: {Authorization: `Bearer ${idToken}`},
+    })
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to load resume analysis by id"
+        );
+    }
+
+    return data;
 }

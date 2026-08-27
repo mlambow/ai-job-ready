@@ -28,8 +28,7 @@ export async function POST(request: NextRequest,
         if (!resume) {
             return NextResponse.json(
                 {
-                    error:
-                        "Resume not found.",
+                    error: "Resume not found.",
                 },
                 {
                     status: 404,
@@ -138,49 +137,23 @@ export async function GET(request: NextRequest,
     {params,}: { params: Promise<{ resumeId: string; }>; },
 ) {
     try {
-        const authorization = request.headers.get("Authorization",);
-
-        if (
-            !authorization ||
-            !authorization.startsWith(
-                "Bearer ",
-            )
-        ) {
-            return NextResponse.json(
-                {
-                    error:
-                        "Unauthorized.",
-                },
-                {
-                    status: 401,
-                },
-            );
-        }
-
-        const idToken = authorization.substring("Bearer ".length);
-
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        const decodedToken = await verifyFirebaseToken(request);
 
         const userId = decodedToken.uid;
 
         const { resumeId } = await params;
 
-        const resume =
-            await getResumeById(
-                userId,
-                resumeId,
-            );
+        const resume = await getResumeById(userId, resumeId);
 
         if (!resume) {
-            return NextResponse.json(
-                {
-                    error:
-                        "Resume not found.",
-                },
-                {
-                    status: 404,
-                },
-            );
+        return NextResponse.json(
+            {
+                error: "Resume not found.",
+            },
+            {
+                status: 404,
+            },
+        );
         }
 
         const versions = await getResumeVersions(userId, resumeId);

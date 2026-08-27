@@ -5,23 +5,16 @@ import { getUserResumes } from "@/lib/firebase/admin-resumes";
 
 export async function GET(request: Request) {
     try {
-        const decodedToken =
-            await verifyFirebaseToken(request);
+        const decodedToken = await verifyFirebaseToken(request);
 
-        const resumes =
-            await getUserResumes(
-                decodedToken.uid,
-            );
+        const resumes = await getUserResumes(decodedToken.uid,);
 
         return NextResponse.json({
             success: true,
             resumes,
         });
     } catch (error) {
-        console.error(
-            "Get resumes error:",
-            error,
-        );
+        console.error("Get resumes error:", error,);
 
         const message =
             error instanceof Error

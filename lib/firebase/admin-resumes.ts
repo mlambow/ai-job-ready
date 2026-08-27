@@ -30,7 +30,7 @@ export async function createResumeDocument(userId: string,
         fileName: data.fileName,
         fileType: data.fileType,
         fileSize: data.fileSize,
-        status: "uploaded",
+        resumeStatus: "uploaded",
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
     });
@@ -43,7 +43,9 @@ export async function createResumeDocument(userId: string,
         fileName: data.fileName,
         fileType: data.fileType,
         fileSize: data.fileSize,
-        status: "uploaded",
+        resumeStatus: "uploaded",
+        analysisStatus: null,
+        analysisId: null,
         extractedText: null,
         createdAt: now,
         updatedAt: now,
@@ -70,7 +72,8 @@ export async function getUserResumes(userId: string): Promise<ServerResume[]> {
             fileName: data.fileName,
             fileType: data.fileType,
             fileSize: data.fileSize,
-            status: data.status,
+            resumeStatus: data.resumeStatus,
+            analysisStatus: null,
             currentVersionId: data.currentVersionId,
             createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
             updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
@@ -104,7 +107,8 @@ export async function getResumeById(userId: string, resumeId: string,): Promise<
         fileName: data.fileName,
         fileType: data.fileType,
         fileSize: data.fileSize,
-        status: data.status,
+        resumeStatus: data.resumeStatus,
+        analysisStatus: null,
         currentVersionId: data.currentVersionId,
         createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
         updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
@@ -164,8 +168,10 @@ export async function createResumeVersion(userId: string, resumeId: string,
                     fileType: data.fileType,
                     fileSize: data.fileSize,
                     versionNumber,
-                    status: "uploaded",
+                    resumeStatus: "uploaded",
                     extractedText: null,
+                    analysisId: null,
+                    analysisStatus: null,
                     createdAt: FieldValue.serverTimestamp(),
                     updatedAt: FieldValue.serverTimestamp(),
                 }
@@ -182,7 +188,8 @@ export async function createResumeVersion(userId: string, resumeId: string,
                     fileName: data.fileName,
                     fileType: data.fileType,
                     fileSize: data.fileSize,
-                    status: "uploaded",
+                    resumeStatus: "uploaded",
+                    analysisStatus: null,
                     updatedAt: FieldValue.serverTimestamp()
                 }
             );
@@ -218,25 +225,18 @@ export async function getResumeVersions(userId: string, resumeId: string,
             return {
                 id: doc.id,
                 resumeId: data.resumeId,
+                analysisId: data.analysisId ?? null,
                 userId: data.userId,
                 versionNumber: data.versionNumber,
                 fileId: data.fileId,
                 fileName: data.fileName,
                 fileType: data.fileType,
                 fileSize: data.fileSize,
-                status: data.status,
+                resumeStatus: data.resumeStatus,
+                analysisStatus: data.analysisStatus ?? null,
                 extractedText: data.extractedText ?? null,
-                createdAt:
-                    data.createdAt
-                        ?.toDate()
-                        ?.toISOString() ??
-                    null,
-
-                updatedAt:
-                    data.updatedAt
-                        ?.toDate()
-                        ?.toISOString() ??
-                    null,
+                createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
+                updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
             };
         },
     );
@@ -279,14 +279,15 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
                 return {
                     id: doc.id,
                     resumeId: data.resumeId,
+                    analysisId: data.analysisId,
                     userId: data.userId,
-                    versionNumber:
-                    data.versionNumber,
+                    versionNumber: data.versionNumber,
                     fileId: data.fileId,
                     fileName: data.fileName,
                     fileType: data.fileType,
                     fileSize: data.fileSize,
-                    status: data.status,
+                    resumeStatus: data.resumeStatus,
+                    analysisStatus: data.analysisStatus,
                     createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
                     updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
                 };
@@ -301,7 +302,8 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
         fileType: resumeData.fileType,
         fileSize: resumeData.fileSize,
         currentVersionId: resumeData.currentVersionId,
-        status: resumeData.status,
+        resumeStatus: resumeData.resumeStatus,
+        analysisStatus: resumeData.analysisStatus,
         createdAt: resumeData.createdAt?.toDate()?.toISOString() ?? null,
         updatedAt: resumeData.updatedAt?.toDate()?.toISOString() ?? null,
     };
@@ -335,12 +337,6 @@ export async function getResumeVersionById(userId: string, resumeId: string, ver
         return null;
     }
 
-    console.log("Looking for version:", {
-        'UserId' :data.userId,
-        'ResumeId': data.resumeId,
-        'VersionId': data.versionId,
-    });
-
     return {
         id: snapshot.id,
         resumeId: data.resumeId,
@@ -350,16 +346,12 @@ export async function getResumeVersionById(userId: string, resumeId: string, ver
         fileType: data.fileType,
         fileSize: data.fileSize,
         versionNumber: data.versionNumber,
-        status: data.status,
+        resumeStatus: data.resumeStatus,
+        analysisId: data.analysisId ?? null,
+        analysisStatus: data.analysisStatus ?? null,
         extractedText: data.extractedText ?? null,
-        createdAt:
-            data.createdAt
-                ?.toDate()
-                ?.toISOString() ?? null,
-        updatedAt:
-            data.updatedAt
-                ?.toDate()
-                ?.toISOString() ?? null,
+        createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
+        updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
     };
 }
 
@@ -377,7 +369,7 @@ export async function markResumeVersionProcessing(
         .doc(versionId);
 
     await versionRef.update({
-        status: "processing",
+        resumeStatus: "processing",
         updatedAt: FieldValue.serverTimestamp(),
     });
 
@@ -389,7 +381,7 @@ export async function markResumeVersionProcessing(
         .doc(resumeId);
 
     await resumeRef.update({
-        status: "processing",
+        resumeStatus: "processing",
         updatedAt: FieldValue.serverTimestamp(),
     });
 }
@@ -404,7 +396,7 @@ export async function completeResumeVersionProcessing(userId: string, resumeId: 
         .doc(versionId);
 
     await versionRef.update({
-        status: "completed",
+        resumeStatus: "ready",
         extractedText,
         updatedAt: FieldValue.serverTimestamp(),
     });
@@ -416,7 +408,7 @@ export async function completeResumeVersionProcessing(userId: string, resumeId: 
         .doc(resumeId);
 
     await resumeRef.update({
-        status: "completed",
+        resumeStatus: "ready",
         updatedAt: FieldValue.serverTimestamp(),
     });
 }
@@ -435,7 +427,7 @@ export async function failResumeVersionProcessing(
         .doc(versionId);
 
     await versionRef.update({
-        status: "failed",
+        resumeStatus: "failed",
         updatedAt: FieldValue.serverTimestamp(),
     });
 
@@ -446,7 +438,7 @@ export async function failResumeVersionProcessing(
         .doc(resumeId);
 
     await resumeRef.update({
-        status: "failed",
+        resumeStatus: "failed",
         updatedAt: FieldValue.serverTimestamp(),
     });
 }

@@ -1,5 +1,8 @@
 import { Type } from '@google/genai'
 
+export type AnalysisStatus = "processing" | "completed" | "failed";
+export type ResumeStatusType = "uploaded" | "processing" | "ready" | "failed";
+
 export type Resume = {
     id: string;
     userId: string;
@@ -8,7 +11,8 @@ export type Resume = {
     fileName: string;
     fileType: string;
     fileSize: number;
-    status: "uploaded" | "processing" | "completed" | "failed";
+    resumeStatus: ResumeStatusType;
+    analysisStatus: AnalysisStatus | null;
     createdAt: string | null;
     updatedAt: string | null;
 };
@@ -16,13 +20,15 @@ export type Resume = {
 export type ResumeVersion = {
     id: string;
     resumeId: string;
+    analysisId: string | null;
     userId: string;
     versionNumber: number;
     fileId: string;
     fileName: string;
     fileType: string;
     fileSize: number;
-    status: "uploaded" | "processing" | "completed" | "failed";
+    resumeStatus: ResumeStatusType;
+    analysisStatus: AnalysisStatus | null;
     extractedText: string | null;
     createdAt: string | null;
     updatedAt: string | null;
@@ -36,7 +42,8 @@ export interface ServerResume {
     fileType: string;
     fileSize: number;
     currentVersionId: string;
-    status: "uploaded" | "processing" | "completed" | "failed";
+    resumeStatus: ResumeStatusType;
+    analysisStatus: AnalysisStatus | null;
     createdAt: string | null;
     updatedAt: string | null;
 }
@@ -44,19 +51,19 @@ export interface ServerResume {
 export interface ServerResumeVersion {
     id: string;
     resumeId: string;
+    analysisId: string | null;
     userId: string;
     versionNumber: number;
     fileId: string;
     fileName: string;
     fileType: string;
     fileSize: number;
-    status: "uploaded" | "processing" | "completed" | "failed";
+    resumeStatus: ResumeStatusType;
+    analysisStatus: AnalysisStatus | null;
     extractedText?: string | null;
     createdAt: string | null;
     updatedAt: string | null;
 }
-
-export type AnalysisStatus = "processing" | "completed" | "failed";
 
 export interface KeywordAnalysis {
     matched: string[];
@@ -71,7 +78,7 @@ export interface ResumeAnalysis {
     jobTitle: string;
     companyName: string | null;
     jobDescription: string;
-    status: AnalysisStatus;
+    analysisStatus: AnalysisStatus;
     atsScore: number | null;
     jobMatchScore: number | null;
     keywordAnalysis: KeywordAnalysis | null;
@@ -90,7 +97,7 @@ export interface ServerResumeAnalysis {
     jobTitle: string;
     companyName: string | null;
     jobDescription: string;
-    status: AnalysisStatus;
+    analysisStatus: AnalysisStatus;
     atsScore: number | null;
     jobMatchScore: number | null;
     keywordAnalysis: {

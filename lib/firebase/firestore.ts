@@ -38,36 +38,3 @@ export async function updateUserProfile (uid: string, data: Record<string, unkno
         updatedAt: serverTimestamp()
     });
 }
-
-export async function createResumeDocument(userId: string, resumeId: string,
-    data: {
-        fileName: string;
-        fileType: string;
-        fileSize: number;
-    },
-) {
-    const resumeRef = doc(
-        db,
-        "users",
-        userId,
-        "resumes",
-        resumeId,
-    );
-
-    await setDoc(resumeRef, {
-        userId,
-
-        fileId: resumeId,
-
-        fileName: data.fileName,
-        fileType: data.fileType,
-        fileSize: data.fileSize,
-
-        status: "uploaded",
-
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-    });
-
-    return resumeRef.id;
-}

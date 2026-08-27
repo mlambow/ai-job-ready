@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FileText, Loader2, Sparkles, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Resume } from "@/utils/types";
@@ -10,11 +11,7 @@ interface AnalyzeResumeModalProps {
     open: boolean;
     resume: Resume | null;
     onClose: () => void;
-    onAnalyze: (data: {
-        jobTitle: string;
-        companyName: string;
-        jobDescription: string;
-    }) => Promise<void>;
+    onAnalyze?: () => void;
 }
 
 export function AnalyzeResumeModal({
@@ -28,6 +25,8 @@ export function AnalyzeResumeModal({
     const [jobDescription, setJobDescription] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const router = useRouter();
 
     async function handleAnalyze(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -46,14 +45,18 @@ export function AnalyzeResumeModal({
             setSubmitting(true);
             setError(null);
 
-            const result = await analyzeResume(
-                resume?.id,
+            const result = await analyzeResume(resume?.id,
                 {
                     jobTitle: jobTitle.trim(),
                     companyName: companyName.trim(),
                     jobDescription: jobDescription.trim(),
                 }
             );
+
+            onAnalyze?.()
+            onClose()
+
+            router.push(`/resumes/${resume.id}/analyses/${result.analysisId}`,);
         } catch (error) {
             setError(
                 error instanceof Error
@@ -188,7 +191,7 @@ export function AnalyzeResumeModal({
                                         onChange={(e) => setJobDescription(e.target.value)}
                                         placeholder="Paste the full job description here..."
                                         disabled={submitting}
-                                        rows={6}
+                                        rows={4}
                                         className="w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2.5 text-xs leading-relaxed text-zinc-100 placeholder:text-zinc-600 outline-none transition-all focus:border-amber-500/50 focus:bg-zinc-900 focus:ring-2 focus:ring-amber-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                                     />
                                 </div>
