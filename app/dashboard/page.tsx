@@ -6,7 +6,7 @@ export default function Dashboard() {
         <main className="flex min-h-screen items-center justify-center bg-background px-6 py-12">
             <div className="w-full">
                 This is a Dashboard
-                <Link href="/dashboard/resumes">
+                <Link href="/resumes">
                     Resumes
                 </Link>
             </div>

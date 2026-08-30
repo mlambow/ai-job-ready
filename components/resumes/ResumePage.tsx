@@ -141,11 +141,8 @@ export function ResumesPage() {
             return;
         }
 
-        const targetName =
-            deleteTarget.fileName;
-
-        const targetId =
-            deleteTarget.id;
+        const targetName = deleteTarget.fileName;
+        const targetId = deleteTarget.id;
 
         try {
             setDeleting(true);
@@ -164,9 +161,7 @@ export function ResumesPage() {
             // Remove its current version
             setCurrentResumeVersions(
                 (prev) => {
-                    const updated = {
-                        ...prev,
-                    };
+                    const updated = {...prev};
 
                     delete updated[targetId];
 
@@ -203,10 +198,7 @@ export function ResumesPage() {
 
             router.push("/");
         } catch (error) {
-            console.error(
-                "Failed to sign out:",
-                error,
-            );
+            console.error("Failed to sign out:", error,);
         }
     }
 
@@ -408,35 +400,18 @@ export function ResumesPage() {
                                             key={resume.id}
                                             resume={resume}
                                             currentVersion={
-                                                currentResumeVersions[
-                                                    resume.id
-                                                    ]
+                                                currentResumeVersions[resume.id]
                                             }
-                                            onAnalyze={(
-                                                resume,
-                                            ) =>
-                                                setAnalyzeResume(
-                                                    resume,
-                                                )
-                                            }
+                                            onAnalyze={(resume,) => setAnalyzeResume(resume)}
                                             onResumeView={async (
                                                 resume,
                                             ) => {
                                                 try {
-                                                    const blob =
-                                                        await viewResume(
-                                                            resume.id,
-                                                        );
+                                                    const blob = await viewResume(resume.id,);
 
-                                                    const url =
-                                                        URL.createObjectURL(
-                                                            blob,
-                                                        );
+                                                    const url = URL.createObjectURL(blob,);
 
-                                                    window.open(
-                                                        url,
-                                                        "_blank",
-                                                    );
+                                                    window.open(url, "_blank",);
 
                                                     setTimeout(
                                                         () =>
@@ -456,42 +431,20 @@ export function ResumesPage() {
                                                     );
                                                 }
                                             }}
-                                            onResumeDownload={async (
-                                                resume,
-                                            ) => {
+                                            onResumeDownload={async (resume,) => {
                                                 try {
-                                                    const blob =
-                                                        await downloadResume(
-                                                            resume.id,
-                                                        );
-
-                                                    const url =
-                                                        URL.createObjectURL(
-                                                            blob,
-                                                        );
-
-                                                    const link =
-                                                        document.createElement(
-                                                            "a",
-                                                        );
-
-                                                    link.href =
-                                                        url;
-
-                                                    link.download =
-                                                        resume.fileName;
-
-                                                    document.body.appendChild(
-                                                        link,
-                                                    );
+                                                    const blob = await downloadResume(resume.id);
+                                                    const url = URL.createObjectURL(blob);
+                                                    const link = document.createElement("a");
+                                                    link.href = url;
+                                                    link.download = resume.fileName;
+                                                    document.body.appendChild(link,);
 
                                                     link.click();
 
                                                     link.remove();
 
-                                                    URL.revokeObjectURL(
-                                                        url,
-                                                    );
+                                                    URL.revokeObjectURL(url,);
 
                                                 } catch (err) {
                                                     showToast(
@@ -503,26 +456,14 @@ export function ResumesPage() {
                                                     );
                                                 }
                                             }}
-                                            onReplace={(
-                                                resume,
-                                            ) =>
-                                                setReplaceResume(
-                                                    resume,
-                                                )
+                                            onReplace={(resume) =>
+                                                setReplaceResume(resume)
                                             }
-                                            onVersionHistory={(
-                                                resume,
-                                            ) =>
-                                                setVersionHistoryResume(
-                                                    resume,
-                                                )
+                                            onVersionHistory={(resume,) =>
+                                                setVersionHistoryResume(resume)
                                             }
-                                            onDelete={(
-                                                resume,
-                                            ) =>
-                                                setDeleteTarget(
-                                                    resume,
-                                                )
+                                            onDelete={(resume,) =>
+                                                setDeleteTarget(resume)
                                             }
                                         />
                                     ),
@@ -534,12 +475,8 @@ export function ResumesPage() {
                     {/* Upload Modal */}
                     <UploadResumeModal
                         open={uploadOpen}
-                        onClose={() =>
-                            setUploadOpen(false)
-                        }
-                        onUploaded={() => {
-                            loadResumes();
-
+                        onClose={() => setUploadOpen(false)}
+                        onUploaded={() => {loadResumes();
                             showToast(
                                 "success",
                                 "Resume uploaded",
@@ -553,31 +490,21 @@ export function ResumesPage() {
                         resume={deleteTarget}
                         error={deleteError}
                         deleting={deleting}
-                        open={
-                            deleteTarget !== null
-                        }
+                        open={deleteTarget !== null}
                         onClose={() => {
                             if (!deleting) {
                                 setDeleteTarget(null);
                             }
                         }}
-                        onConfirm={
-                            handleDeleteResume
-                        }
+                        onConfirm={handleDeleteResume}
                     />
 
                     {/* Replace Modal */}
                     <ReplaceResumeModal
-                        open={
-                            replaceResume !== null
-                        }
+                        open={replaceResume !== null}
                         resume={replaceResume}
-                        onClose={() =>
-                            setReplaceResume(null)
-                        }
-                        onReplaced={() => {
-                            loadResumes();
-
+                        onClose={() => setReplaceResume(null)}
+                        onReplaced={() => {loadResumes();
                             showToast(
                                 "success",
                                 "Resume replaced",
@@ -588,28 +515,17 @@ export function ResumesPage() {
 
                     {/* Version History Modal */}
                     <VersionHistoryModal
-                        open={
-                            versionHistoryResume !== null
-                        }
-                        resume={
-                            versionHistoryResume
-                        }
-                        onClose={() =>
-                            setVersionHistoryResume(null)
-                        }
+                        open={versionHistoryResume !== null}
+                        resume={versionHistoryResume}
+                        onClose={() => setVersionHistoryResume(null)}
                     />
 
                     {/* Analyze Modal */}
                     <AnalyzeResumeModal
-                        open={
-                            analyzeResume !== null
-                        }
+                        open={analyzeResume !== null}
                         resume={analyzeResume}
-                        onClose={() =>
-                            setAnalyzeResume(null)
-                        }
-                        onAnalyze={() => {
-                            setAnalyzeResume(null);
+                        onClose={() => setAnalyzeResume(null)}
+                        onAnalyze={() => {setAnalyzeResume(null);
 
                             // Refresh the current version
                             // so analysisStatus updates

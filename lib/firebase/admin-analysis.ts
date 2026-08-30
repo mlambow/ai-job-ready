@@ -1,8 +1,11 @@
-import {FieldValue} from "firebase-admin/firestore";
-import {adminDb} from "@/lib/firebase/admin";
+import { FieldValue } from "firebase-admin/firestore";
+import { adminDb } from "@/lib/firebase/admin";
 import {CompleteResumeAnalysisData, ServerResumeAnalysis} from "@/utils/types";
 
-export async function getResumeAnalysisById(userId: string, resumeId: string, analysisId: string,
+export async function getResumeAnalysisById(
+    userId: string,
+    resumeId: string,
+    analysisId: string,
 ): Promise<ServerResumeAnalysis | null> {
     const analysisRef = adminDb
         .collection("users")
@@ -26,30 +29,78 @@ export async function getResumeAnalysisById(userId: string, resumeId: string, an
 
     return {
         id: snapshot.id,
+
         userId: data.userId,
         resumeId: data.resumeId,
         versionId: data.versionId,
+
         jobTitle: data.jobTitle,
         companyName: data.companyName ?? null,
         jobDescription: data.jobDescription,
-        analysisStatus: data.status,
-        atsScore: data.atsScore ?? null,
-        jobMatchScore: data.jobMatchScore ?? null,
-        keywordAnalysis: data.keywordAnalysis
-                ? {
-                    matched: data.keywordAnalysis.matched ?? [],
-                    missing: data.keywordAnalysis.missing ?? [],
-                }
-                : null,
-        strengths: data.strengths ?? [],
-        improvements: data.improvements ?? [],
-        summary: data.summary ?? null,
-        createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
-        updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
+
+        analysisStatus: data.analysisStatus,
+
+        overallScore: data.overallScore ?? null,
+
+        ATS: {
+            score: data.ats?.score ?? 0,
+            tips: data.ats?.tips ?? [],
+        },
+
+        toneAndStyle: {
+            score: data.toneAndStyle?.score ?? 0,
+        },
+
+        content: {
+            score: data.content?.score ?? 0,
+            tips: data.content?.tips ?? [],
+        },
+
+        structure: {
+            score: data.structure?.score ?? 0,
+        },
+
+        skills: {
+            score: data.skills?.score ?? 0,
+            matchedSkills: data.skills?.matchedSkills ?? [],
+            missingSkills: data.skills?.missingSkills ?? [],
+            tips: data.skills?.tips ?? [],
+        },
+
+        experience: {
+            analysis: data.experience?.analysis ?? "",
+            recommendedMetrics:
+                data.experience?.recommendedMetrics ?? [],
+        },
+
+        keywords: {
+            missingKeywords:
+                data.keywords?.missingKeywords ?? [],
+            tips: data.keywords?.tips ?? [],
+        },
+
+        summary: {
+            alignmentScore:
+                data.summary?.alignmentScore ?? 0,
+            tips: data.summary?.tips ?? [],
+        },
+
+        aiSuggestions: {
+            improvedSummary:
+                data.aiSuggestions?.improvedSummary ?? "",
+        },
+
+        createdAt:
+            data.createdAt?.toDate()?.toISOString() ?? null,
+
+        updatedAt:
+            data.updatedAt?.toDate()?.toISOString() ?? null,
     };
 }
 
-export async function createAnalysisDocument(userId: string, resumeId: string,
+export async function createAnalysisDocument(
+    userId: string,
+    resumeId: string,
     data: {
         versionId: string;
         jobTitle: string;
@@ -78,24 +129,64 @@ export async function createAnalysisDocument(userId: string, resumeId: string,
         userId,
         resumeId,
         versionId: data.versionId,
+
         jobTitle: data.jobTitle,
         companyName: data.companyName ?? null,
         jobDescription: data.jobDescription,
 
-        status: "processing",
+        analysisStatus: "processing",
 
-        atsScore: null,
-        jobMatchScore: null,
-        keywordAnalysis: null,
-        strengths: [],
-        improvements: [],
-        summary: null,
+        overallScore: null,
+
+        ats: {
+            score: 0,
+            tips: [],
+        },
+
+        toneAndStyle: {
+            score: 0,
+        },
+
+        content: {
+            score: 0,
+            tips: [],
+        },
+
+        structure: {
+            score: 0,
+        },
+
+        skills: {
+            score: 0,
+            matchedSkills: [],
+            missingSkills: [],
+            tips: [],
+        },
+
+        experience: {
+            analysis: "",
+            recommendedMetrics: [],
+        },
+
+        keywords: {
+            missingKeywords: [],
+            tips: [],
+        },
+
+        summary: {
+            alignmentScore: 0,
+            tips: [],
+        },
+
+        aiSuggestions: {
+            improvedSummary: "",
+        },
 
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),
     });
 
-    // Update the specific resume version
+    // Update the resume version
     batch.update(versionRef, {
         analysisId: analysisRef.id,
         analysisStatus: "processing",
@@ -123,7 +214,7 @@ export async function completeAnalysis(
         .collection("analysis")
         .doc(analysisId);
 
-    // Get the analysis so we know its versionId
+    // Get analysis to find the linked version
     const analysisSnapshot = await analysisRef.get();
 
     if (!analysisSnapshot.exists) {
@@ -149,16 +240,31 @@ export async function completeAnalysis(
     // Complete the analysis
     batch.update(analysisRef, {
         analysisStatus: "completed",
-        atsScore: data.atsScore,
-        jobMatchScore: data.jobMatchScore,
-        keywordAnalysis: data.keywordAnalysis,
-        strengths: data.strengths,
-        improvements: data.improvements,
+
+        overallScore: data.overallScore,
+
+        ats: data.ATS,
+
+        toneAndStyle: data.toneAndStyle,
+
+        content: data.content,
+
+        structure: data.structure,
+
+        skills: data.skills,
+
+        experience: data.experience,
+
+        keywords: data.keywords,
+
         summary: data.summary,
+
+        aiSuggestions: data.aiSuggestions,
+
         updatedAt: FieldValue.serverTimestamp(),
     });
 
-    // Update the specific version
+    // Update the linked version
     batch.update(versionRef, {
         analysisStatus: "completed",
         updatedAt: FieldValue.serverTimestamp(),
@@ -167,22 +273,56 @@ export async function completeAnalysis(
     await batch.commit();
 }
 
-export async function failAnalysis(userId: string, resumeId: string, analysisId: string) {
-    const analysisRef = adminDb
+export async function failAnalysis(
+    userId: string,
+    resumeId: string,
+    analysisId: string,
+) {
+    const resumeRef = adminDb
         .collection("users")
         .doc(userId)
         .collection("resumes")
-        .doc(resumeId)
+        .doc(resumeId);
+
+    const analysisRef = resumeRef
         .collection("analysis")
         .doc(analysisId);
 
-    await analysisRef.update({
-        status: "failed",
+    const analysisSnapshot = await analysisRef.get();
+
+    if (!analysisSnapshot.exists) {
+        return;
+    }
+
+    const analysisData = analysisSnapshot.data();
+
+    const versionId = analysisData?.versionId;
+
+    const batch = adminDb.batch();
+
+    batch.update(analysisRef, {
+        analysisStatus: "failed",
         updatedAt: FieldValue.serverTimestamp(),
     });
+
+    if (versionId) {
+        const versionRef = resumeRef
+            .collection("versions")
+            .doc(versionId);
+
+        batch.update(versionRef, {
+            analysisStatus: "failed",
+            updatedAt: FieldValue.serverTimestamp(),
+        });
+    }
+
+    await batch.commit();
 }
 
-export async function getResumeAnalysis(userId: string, resumeId: string): Promise<ServerResumeAnalysis[]> {
+export async function getResumeAnalysis(
+    userId: string,
+    resumeId: string,
+): Promise<ServerResumeAnalysis[]> {
     const snapshot = await adminDb
         .collection("users")
         .doc(userId)
@@ -190,28 +330,84 @@ export async function getResumeAnalysis(userId: string, resumeId: string): Promi
         .doc(resumeId)
         .collection("analysis")
         .orderBy("createdAt", "desc")
-        .get()
+        .get();
 
     return snapshot.docs.map((doc) => {
         const data = doc.data();
 
         return {
             id: doc.id,
+
             userId: data.userId,
             resumeId: data.resumeId,
             versionId: data.versionId,
+
             jobTitle: data.jobTitle,
             companyName: data.companyName ?? null,
             jobDescription: data.jobDescription,
-            analysisStatus: data.status,
-            atsScore: data.atsScore ?? null,
-            jobMatchScore: data.jobMatchScore ?? null,
-            keywordAnalysis: data.keywordAnalysis ?? null,
-            strengths: data.strengths ?? [],
-            improvements: data.improvements ?? [],
-            summary: data.summary ?? null,
-            createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
-            updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
+
+            analysisStatus: data.analysisStatus,
+
+            overallScore: data.overallScore ?? null,
+
+            ATS: {
+                score: data.ats?.score ?? 0,
+                tips: data.ats?.tips ?? [],
+            },
+
+            toneAndStyle: {
+                score: data.toneAndStyle?.score ?? 0,
+            },
+
+            content: {
+                score: data.content?.score ?? 0,
+                tips: data.content?.tips ?? [],
+            },
+
+            structure: {
+                score: data.structure?.score ?? 0,
+            },
+
+            skills: {
+                score: data.skills?.score ?? 0,
+                matchedSkills:
+                    data.skills?.matchedSkills ?? [],
+                missingSkills:
+                    data.skills?.missingSkills ?? [],
+                tips: data.skills?.tips ?? [],
+            },
+
+            experience: {
+                analysis:
+                    data.experience?.analysis ?? "",
+                recommendedMetrics:
+                    data.experience?.recommendedMetrics ?? [],
+            },
+
+            keywords: {
+                missingKeywords:
+                    data.keywords?.missingKeywords ?? [],
+                tips:
+                    data.keywords?.tips ?? [],
+            },
+
+            summary: {
+                alignmentScore:
+                    data.summary?.alignmentScore ?? 0,
+                tips:
+                    data.summary?.tips ?? [],
+            },
+
+            aiSuggestions: {
+                improvedSummary:
+                    data.aiSuggestions?.improvedSummary ?? "",
+            },
+
+            createdAt:
+                data.createdAt?.toDate()?.toISOString() ?? null,
+
+            updatedAt:
+                data.updatedAt?.toDate()?.toISOString() ?? null,
         };
     });
 }

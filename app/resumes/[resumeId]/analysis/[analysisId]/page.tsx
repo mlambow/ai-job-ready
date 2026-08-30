@@ -28,8 +28,7 @@ export default function ResumeAnalysisPage({ params }: AnalysisPageProps) {
                 setLoading(true);
                 setError(null);
                 const data = await getResumeAnalysisById(resumeId, analysisId);
-                console.log(data)
-                setAnalysis(data.analysis);
+                setAnalysis(data);
             } catch (err) {
                 setError(
                     err instanceof Error

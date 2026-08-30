@@ -1,5 +1,6 @@
 import {gemini} from "@/lib/gemini/client";
 import {AIResumeAnalysisResponse, analysisSchema} from "@/utils/types";
+import {AIResponseFormat} from "@/utils/constants";
 
 export async function analyzeResumeWithAI(
     resumeText: string,
@@ -8,39 +9,39 @@ export async function analyzeResumeWithAI(
     jobDescription: string,
 ): Promise<AIResumeAnalysisResponse> {
     const prompt = `
-You are an expert ATS resume analyzer and technical recruiter. Analyze the candidate's resume against the provided job opportunity.
-Your goal is to provide an accurate and helpful analysis based only on the information provided.
-JOB TITLE:${jobTitle}
-COMPANY:${companyName ?? "Not provided"}
-JOB DESCRIPTION:${jobDescription}
-RESUME:${resumeText}
-Analyze the resume and return:
+You are an expert resume reviewer and ATS optimization specialist.
 
-1. atsScore:
-A score from 0 to 100 representing how well the resume is optimized for Applicant Tracking Systems.
+Analyze the candidate's resume against the provided job description.
 
-2. jobMatchScore:
-A score from 0 to 100 representing how well the candidate matches the job requirements.
+Your analysis must be specific to the resume and job description. Do not give generic advice.
 
-3. keywordAnalysis:
-- matched: important keywords and skills from the job description found in the resume.
-- missing: important keywords and skills from the job description missing from the resume.
+Score all numerical fields from 0 to 100.
 
-4. strengths:
-A list of the strongest aspects of the resume relevant to this job.
+For tips:
 
-5. improvements:
-A list of specific, actionable improvements that could help the candidate improve their chances of getting this job.
+- "good" means the resume performs well in that area.
+- "improve" means the area could be improved.
+- "unsatisfactory" means the area is significantly weak or missing.
 
-6. summary:
-A concise overall assessment of the candidate's resume and job fit.
+For missing skills and keywords, only include skills and keywords that are relevant to the provided job description.
 
-IMPORTANT RULES:
-- Scores must be numbers between 0 and 100.
-- Do not invent skills, experience, qualifications, or achievements.
-- Base the analysis only on the resume and job description.
-- Be specific and actionable.
-- Do not include markdown formatting.
+For recommended metrics, suggest realistic measurable achievements that the candidate could add where appropriate. Do not invent false achievements. Phrase them as recommendations.
+
+Resume:
+${resumeText}
+
+Job Description:
+${jobDescription}
+
+Job Title:
+${jobTitle}
+
+Company name:
+${companyName}
+
+${AIResponseFormat}
+
+Return only valid JSON matching the required structure.
 `;
 
     const response =

@@ -2,6 +2,193 @@ import { Type } from '@google/genai'
 
 export type AnalysisStatus = "processing" | "completed" | "failed";
 export type ResumeStatusType = "uploaded" | "processing" | "ready" | "failed";
+export type FeedbackType = "good" | "improve" | "unsatisfactory";
+
+export interface AITip {
+    type: FeedbackType;
+    tip: string;
+}
+
+export interface DetailedAITip {
+    type: FeedbackType;
+    explanation: string;
+}
+
+export interface AIResumeAnalysisResponse {
+    overallScore: number;
+
+    ATS: {
+        score: number;
+        tips: AITip[];
+    };
+
+    toneAndStyle: {
+        score: number;
+    };
+
+    content: {
+        score: number;
+        tips: DetailedAITip[];
+    };
+
+    structure: {
+        score: number;
+    };
+
+    skills: {
+        score: number;
+        matchedSkills: string[];
+        missingSkills: string[];
+        tips: DetailedAITip[];
+    };
+
+    experience: {
+        analysis: string;
+        recommendedMetrics: string[];
+    };
+
+    keywords: {
+        missingKeywords: string[];
+        tips: string[];
+    };
+
+    summary: {
+        alignmentScore: number;
+        tips: DetailedAITip[];
+    };
+
+    aiSuggestions: {
+        improvedSummary: string;
+    };
+}
+
+export interface ResumeAnalysis {
+    id: string;
+
+    userId: string;
+
+    resumeId: string;
+
+    versionId: string;
+
+    jobTitle: string;
+
+    companyName: string | null;
+
+    jobDescription: string;
+
+    analysisStatus: AnalysisStatus;
+
+    overallScore: number | null;
+
+    ATS: {
+        score: number;
+        tips: AITip[];
+    } | null;
+
+    toneAndStyle: {
+        score: number;
+    } | null;
+
+    content: {
+        score: number;
+        tips: DetailedAITip[];
+    } | null;
+
+    structure: {
+        score: number;
+    } | null;
+
+    skills: {
+        score: number;
+        matchedSkills: string[];
+        missingSkills: string[];
+        tips: DetailedAITip[];
+    } | null;
+
+    experience: {
+        analysis: string;
+        recommendedMetrics: string[];
+    } | null;
+
+    keywords: {
+        missingKeywords: string[];
+        tips: string[];
+    } | null;
+
+    summary: {
+        alignmentScore: number;
+        tips: DetailedAITip[];
+    } | null;
+
+    aiSuggestions: {
+        improvedSummary: string;
+    } | null;
+
+    createdAt: string | null;
+    updatedAt: string | null;
+}
+
+export interface ServerResumeAnalysis {
+    id: string;
+    userId: string;
+    resumeId: string;
+    versionId: string;
+    jobTitle: string;
+    companyName: string | null;
+    jobDescription: string;
+    analysisStatus: AnalysisStatus;
+    overallScore: number | null;
+
+    ATS: {
+        score: number;
+        tips: AITip[];
+    } | null;
+
+    toneAndStyle: {
+        score: number;
+    } | null;
+
+    content: {
+        score: number;
+        tips: DetailedAITip[];
+    } | null;
+
+    structure: {
+        score: number;
+    } | null;
+
+    skills: {
+        score: number;
+        matchedSkills: string[];
+        missingSkills: string[];
+        tips: DetailedAITip[];
+    } | null;
+
+    experience: {
+        analysis: string;
+        recommendedMetrics: string[];
+    } | null;
+
+    keywords: {
+        missingKeywords: string[];
+        tips: string[];
+    } | null;
+
+    summary: {
+        alignmentScore: number;
+        tips: DetailedAITip[];
+    } | null;
+
+    aiSuggestions: {
+        improvedSummary: string;
+    } | null;
+
+    createdAt: string | null;
+    updatedAt: string | null;
+}
+
+export type CompleteResumeAnalysisData = AIResumeAnalysisResponse;
 
 export type Resume = {
     id: string;
@@ -65,122 +252,287 @@ export interface ServerResumeVersion {
     updatedAt: string | null;
 }
 
-export interface KeywordAnalysis {
-    matched: string[];
-    missing: string[];
-}
-
-export interface ResumeAnalysis {
-    id: string;
-    userId: string;
-    resumeId: string;
-    versionId: string;
-    jobTitle: string;
-    companyName: string | null;
-    jobDescription: string;
-    analysisStatus: AnalysisStatus;
-    atsScore: number | null;
-    jobMatchScore: number | null;
-    keywordAnalysis: KeywordAnalysis | null;
-    strengths: string[];
-    improvements: string[];
-    summary: string | null;
-    createdAt: string | null;
-    updatedAt: string | null;
-}
-
-export interface ServerResumeAnalysis {
-    id: string;
-    userId: string;
-    resumeId: string;
-    versionId: string;
-    jobTitle: string;
-    companyName: string | null;
-    jobDescription: string;
-    analysisStatus: AnalysisStatus;
-    atsScore: number | null;
-    jobMatchScore: number | null;
-    keywordAnalysis: {
-        matched: string[];
-        missing: string[];
-    } | null;
-    strengths: string[];
-    improvements: string[];
-    summary: string | null;
-    createdAt: string | null;
-    updatedAt: string | null;
-}
-
-export type CompleteResumeAnalysisData = {
-    atsScore: number;
-    jobMatchScore: number;
-    keywordAnalysis: {
-        matched: string[];
-        missing: string[];
-    };
-    strengths: string[];
-    improvements: string[];
-    summary: string;
-};
-
-export interface AIResumeAnalysisResponse {
-    atsScore: number;
-    jobMatchScore: number;
-    keywordAnalysis: {
-        matched: string[];
-        missing: string[];
-    };
-    strengths: string[];
-    improvements: string[];
-    summary: string;
-}
-
 export const analysisSchema = {
     type: Type.OBJECT,
+
     properties: {
-        atsScore: {
+        overallScore: {
             type: Type.NUMBER,
         },
 
-        jobMatchScore: {
-            type: Type.NUMBER,
-        },
-
-        keywordAnalysis: {
+        ATS: {
             type: Type.OBJECT,
+
             properties: {
-                matched: {
-                    type: Type.ARRAY,
-                    items: {type: Type.STRING,},
+                score: {
+                    type: Type.NUMBER,
                 },
 
-                missing: {
+                tips: {
                     type: Type.ARRAY,
-                    items: {type: Type.STRING,},
+
+                    items: {
+                        type: Type.OBJECT,
+
+                        properties: {
+                            type: {
+                                type: Type.STRING,
+                            },
+
+                            tip: {
+                                type: Type.STRING,
+                            },
+                        },
+
+                        required: [
+                            "type",
+                            "tip",
+                        ],
+                    },
                 },
             },
-            required: ["matched", "missing",],
+
+            required: [
+                "score",
+                "tips",
+            ],
         },
 
-        strengths: {
-            type: Type.ARRAY,
-            items: {type: Type.STRING,},
+        toneAndStyle: {
+            type: Type.OBJECT,
+
+            properties: {
+                score: {
+                    type: Type.NUMBER,
+                },
+            },
+
+            required: [
+                "score",
+            ],
         },
 
-        improvements: {
-            type: Type.ARRAY,
-            items: {type: Type.STRING,},
+        content: {
+            type: Type.OBJECT,
+
+            properties: {
+                score: {
+                    type: Type.NUMBER,
+                },
+
+                tips: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.OBJECT,
+
+                        properties: {
+                            type: {
+                                type: Type.STRING,
+                            },
+
+                            explanation: {
+                                type: Type.STRING,
+                            },
+                        },
+
+                        required: [
+                            "type",
+                            "explanation",
+                        ],
+                    },
+                },
+            },
+
+            required: [
+                "score",
+                "tips",
+            ],
         },
 
-        summary: {type: Type.STRING},
+        structure: {
+            type: Type.OBJECT,
+
+            properties: {
+                score: {
+                    type: Type.NUMBER,
+                },
+            },
+
+            required: [
+                "score",
+            ],
+        },
+
+        skills: {
+            type: Type.OBJECT,
+
+            properties: {
+                score: {
+                    type: Type.NUMBER,
+                },
+
+                matchedSkills: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.STRING,
+                    },
+                },
+
+                missingSkills: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.STRING,
+                    },
+                },
+
+                tips: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.OBJECT,
+
+                        properties: {
+                            type: {
+                                type: Type.STRING,
+                            },
+
+                            explanation: {
+                                type: Type.STRING,
+                            },
+                        },
+
+                        required: [
+                            "type",
+                            "explanation",
+                        ],
+                    },
+                },
+            },
+
+            required: [
+                "score",
+                "matchedSkills",
+                "missingSkills",
+                "tips",
+            ],
+        },
+
+        experience: {
+            type: Type.OBJECT,
+
+            properties: {
+                analysis: {
+                    type: Type.STRING,
+                },
+
+                recommendedMetrics: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.STRING,
+                    },
+                },
+            },
+
+            required: [
+                "analysis",
+                "recommendedMetrics",
+            ],
+        },
+
+        keywords: {
+            type: Type.OBJECT,
+
+            properties: {
+                missingKeywords: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.STRING,
+                    },
+                },
+
+                tips: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.STRING,
+                    },
+                },
+            },
+
+            required: [
+                "missingKeywords",
+                "tips",
+            ],
+        },
+
+        summary: {
+            type: Type.OBJECT,
+
+            properties: {
+                alignmentScore: {
+                    type: Type.NUMBER,
+                },
+
+                tips: {
+                    type: Type.ARRAY,
+
+                    items: {
+                        type: Type.OBJECT,
+
+                        properties: {
+                            type: {
+                                type: Type.STRING,
+                            },
+
+                            explanation: {
+                                type: Type.STRING,
+                            },
+                        },
+
+                        required: [
+                            "type",
+                            "explanation",
+                        ],
+                    },
+                },
+            },
+
+            required: [
+                "alignmentScore",
+                "tips",
+            ],
+        },
+
+        aiSuggestions: {
+            type: Type.OBJECT,
+
+            properties: {
+                improvedSummary: {
+                    type: Type.STRING,
+                },
+            },
+
+            required: [
+                "improvedSummary",
+            ],
+        },
     },
 
     required: [
-        "atsScore",
-        "jobMatchScore",
-        "keywordAnalysis",
-        "strengths",
-        "improvements",
+        "overallScore",
+        "ATS",
+        "toneAndStyle",
+        "content",
+        "structure",
+        "skills",
+        "experience",
+        "keywords",
         "summary",
+        "aiSuggestions",
     ],
 };
