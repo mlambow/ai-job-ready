@@ -1,6 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
-import {AnalysisStatus, ServerResume, ServerResumeAnalysis, ServerResumeVersion} from "@/utils/types";
+import {ServerResume, ServerResumeAnalysis, ServerResumeVersion} from "@/utils/types";
 
 export async function createResumeDocument(userId: string,
     data: {
@@ -242,7 +242,10 @@ export async function getResumeVersions(userId: string, resumeId: string,
     );
 }
 
-export async function getDeletionData(userId: string, resumeId: string): Promise<{
+export async function getDeletionData(
+    userId: string,
+    resumeId: string,
+): Promise<{
     resumeRef: FirebaseFirestore.DocumentReference;
     resume: ServerResume;
     versions: ServerResumeVersion[];
@@ -256,74 +259,143 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
 
     const resumeSnapshot = await resumeRef.get();
 
-    if(!resumeSnapshot.exists) {
+    if (!resumeSnapshot.exists) {
         throw new Error("Resume not found.");
     }
 
     const resumeData = resumeSnapshot.data();
 
     if (!resumeData) {
-        throw new Error(
-            "Resume data not found.",
-        );
+        throw new Error("Resume data not found.");
     }
 
     const analysisSnapshot = await resumeRef
         .collection("analysis")
-        .get()
+        .get();
 
     const versionsSnapshot = await resumeRef
         .collection("versions")
-        .get()
+        .get();
 
     const analysis: ServerResumeAnalysis[] =
-        analysisSnapshot.docs.map(
-            (doc) => {
-                const data = doc.data()
+        analysisSnapshot.docs.map((doc) => {
+            const data = doc.data();
 
-                return {
-                    id: data.id,
-                    userId: data.userId,
-                    resumeId: data.resumeId,
-                    versionId: data.versionId,
-                    jobTitle: data.jobTitle,
-                    companyName: data.companyName,
-                    jobDescription: data.jobDescription,
-                    analysisStatus: data.analysisStatus,
-                    atsScore: data.atsScore,
-                    jobMatchScore: data.jobMatchScore,
-                    keywordAnalysis: data.keywordAnalysis,
-                    strengths: data.strengths,
-                    improvements: data.improvements,
-                    summary: data.summary,
-                    createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
-                    updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
-                }
-            }
-        )
+            return {
+                id: doc.id,
+
+                userId: data.userId,
+                resumeId: data.resumeId,
+                versionId: data.versionId,
+
+                jobTitle: data.jobTitle,
+                companyName: data.companyName ?? null,
+                jobDescription: data.jobDescription,
+
+                analysisStatus: data.analysisStatus,
+
+                overallScore: data.overallScore ?? 0,
+
+                ATS: data.ATS
+                    ? {
+                        score: data.ATS.score ?? 0,
+                        tips: data.ATS.tips ?? [],
+                    }
+                    : null,
+
+                toneAndStyle: data.toneAndStyle
+                    ? {
+                        score: data.toneAndStyle.score ?? 0,
+                    }
+                    : null,
+
+                content: data.content
+                    ? {
+                        score: data.content.score ?? 0,
+                        tips: data.content.tips ?? [],
+                    }
+                    : null,
+
+                structure: data.structure
+                    ? {
+                        score: data.structure.score ?? 0,
+                    }
+                    : null,
+
+                skills: data.skills
+                    ? {
+                        score: data.skills.score ?? 0,
+                        matchedSkills:
+                            data.skills.matchedSkills ?? [],
+                        missingSkills:
+                            data.skills.missingSkills ?? [],
+                        tips: data.skills.tips ?? [],
+                    }
+                    : null,
+
+                experience: data.experience
+                    ? {
+                        analysis:
+                            data.experience.analysis ?? "",
+                        recommendedMetrics:
+                            data.experience.recommendedMetrics ?? [],
+                    }
+                    : null,
+
+                keywords: data.keywords
+                    ? {
+                        missingKeywords:
+                            data.keywords.missingKeywords ?? "",
+                        tips: data.keywords.tips ?? [],
+                    }
+                    : null,
+
+                summary: data.summary
+                    ? {
+                        alignmentScore:
+                            data.summary.alignmentScore ?? 0,
+                        tips: data.summary.tips ?? [],
+                    }
+                    : null,
+
+                aiSuggestions: data.aiSuggestions
+                    ? {
+                        improvedSummary:
+                            data.aiSuggestions.improvedSummary ?? "",
+                    }
+                    : null,
+
+                createdAt:
+                    data.createdAt?.toDate()?.toISOString() ?? null,
+
+                updatedAt:
+                    data.updatedAt?.toDate()?.toISOString() ?? null,
+            };
+        });
 
     const versions: ServerResumeVersion[] =
-        versionsSnapshot.docs.map(
-            (doc) => {
-                const data = doc.data();
+        versionsSnapshot.docs.map((doc) => {
+            const data = doc.data();
 
-                return {
-                    id: doc.id,
-                    resumeId: data.resumeId,
-                    analysisId: data.analysisId,
-                    userId: data.userId,
-                    versionNumber: data.versionNumber,
-                    fileId: data.fileId,
-                    fileName: data.fileName,
-                    fileType: data.fileType,
-                    fileSize: data.fileSize,
-                    resumeStatus: data.resumeStatus,
-                    analysisStatus: data.analysisStatus,
-                    createdAt: data.createdAt?.toDate()?.toISOString() ?? null,
-                    updatedAt: data.updatedAt?.toDate()?.toISOString() ?? null,
-                };
-            },
-        );
+            return {
+                id: doc.id,
+                resumeId: data.resumeId,
+                analysisId: data.analysisId,
+                userId: data.userId,
+                versionNumber: data.versionNumber,
+                fileId: data.fileId,
+                fileName: data.fileName,
+                fileType: data.fileType,
+                fileSize: data.fileSize,
+                resumeStatus: data.resumeStatus,
+                analysisStatus: data.analysisStatus,
+                extractedText: data.extractedText ?? null,
+                createdAt:
+                    data.createdAt?.toDate()?.toISOString() ?? null,
+                updatedAt:
+                    data.updatedAt?.toDate()?.toISOString() ?? null,
+            };
+        });
 
     const resume: ServerResume = {
         id: resumeSnapshot.id,
@@ -334,7 +406,7 @@ export async function getDeletionData(userId: string, resumeId: string): Promise
         fileSize: resumeData.fileSize,
         currentVersionId: resumeData.currentVersionId,
         resumeStatus: resumeData.resumeStatus,
-        analysisStatus: resumeData.analysisStatus,
+        analysisStatus: resumeData.analysisStatus ?? null,
         createdAt: resumeData.createdAt?.toDate()?.toISOString() ?? null,
         updatedAt: resumeData.updatedAt?.toDate()?.toISOString() ?? null,
     };
