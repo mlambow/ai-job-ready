@@ -1,12 +1,18 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import {CompleteResumeAnalysisData, ServerResumeAnalysis} from "@/utils/types";
+import {cacheTag, revalidateTag} from "next/cache";
+import {resumeAnalysisByIdTag, resumeAnalysisTag, resumeListTag} from "@/lib/cache/resumeCache";
 
 export async function getResumeAnalysisById(
     userId: string,
     resumeId: string,
     analysisId: string,
 ): Promise<ServerResumeAnalysis | null> {
+    'use cache'
+
+    cacheTag(resumeAnalysisByIdTag(userId, resumeId, analysisId));
+
     const analysisRef = adminDb
         .collection("users")
         .doc(userId)
@@ -271,6 +277,9 @@ export async function completeAnalysis(
     });
 
     await batch.commit();
+
+    revalidateTag(resumeListTag(userId), "max");
+    revalidateTag(resumeAnalysisTag(userId, resumeId), "max");
 }
 
 export async function failAnalysis(
@@ -317,12 +326,19 @@ export async function failAnalysis(
     }
 
     await batch.commit();
+
+    revalidateTag(resumeListTag(userId), "max");
+    revalidateTag(resumeAnalysisTag(userId, resumeId), "max");
 }
 
 export async function getResumeAnalysis(
     userId: string,
     resumeId: string,
 ): Promise<ServerResumeAnalysis[]> {
+    "use cache";
+
+    cacheTag(resumeAnalysisTag(userId, resumeId));
+
     const snapshot = await adminDb
         .collection("users")
         .doc(userId)

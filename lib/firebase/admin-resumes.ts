@@ -1,6 +1,8 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import {ServerResume, ServerResumeAnalysis, ServerResumeVersion} from "@/utils/types";
+import {cacheTag, revalidateTag} from "next/cache";
+import {resumeListTag, resumeTag, resumeVersionTag} from "@/lib/cache/resumeCache";
 
 export async function createResumeDocument(userId: string,
     data: {
@@ -51,10 +53,16 @@ export async function createResumeDocument(userId: string,
         updatedAt: now,
     });
 
+    revalidateTag(resumeListTag(userId), 'max');
+
     return resumeRef.id;
 }
 
 export async function getUserResumes(userId: string): Promise<ServerResume[]> {
+    "use cache";
+
+    cacheTag(resumeListTag(userId));
+
     const snapshot = await adminDb
         .collection("users")
         .doc(userId)
@@ -82,6 +90,10 @@ export async function getUserResumes(userId: string): Promise<ServerResume[]> {
 }
 
 export async function getResumeById(userId: string, resumeId: string,): Promise<ServerResume | null> {
+    'use cache'
+
+    cacheTag(resumeTag(userId, resumeId))
+
     const resumeRef = adminDb
         .collection("users")
         .doc(userId)
@@ -194,6 +206,8 @@ export async function createResumeVersion(userId: string, resumeId: string,
                 }
             );
 
+            revalidateTag(resumeListTag(userId), "max");
+
             return {
                 versionId:
                 versionRef.id,
@@ -242,10 +256,7 @@ export async function getResumeVersions(userId: string, resumeId: string,
     );
 }
 
-export async function getDeletionData(
-    userId: string,
-    resumeId: string,
-): Promise<{
+export async function getDeletionData(userId: string, resumeId: string,): Promise<{
     resumeRef: FirebaseFirestore.DocumentReference;
     resume: ServerResume;
     versions: ServerResumeVersion[];
@@ -277,125 +288,123 @@ export async function getDeletionData(
         .collection("versions")
         .get();
 
-    const analysis: ServerResumeAnalysis[] =
-        analysisSnapshot.docs.map((doc) => {
-            const data = doc.data();
+    const analysis: ServerResumeAnalysis[] = analysisSnapshot.docs.map((doc) => {
+        const data = doc.data();
 
-            return {
-                id: doc.id,
+        return {
+            id: doc.id,
 
-                userId: data.userId,
-                resumeId: data.resumeId,
-                versionId: data.versionId,
+            userId: data.userId,
+            resumeId: data.resumeId,
+            versionId: data.versionId,
 
-                jobTitle: data.jobTitle,
-                companyName: data.companyName ?? null,
-                jobDescription: data.jobDescription,
+            jobTitle: data.jobTitle,
+            companyName: data.companyName ?? null,
+            jobDescription: data.jobDescription,
 
-                analysisStatus: data.analysisStatus,
+            analysisStatus: data.analysisStatus,
 
-                overallScore: data.overallScore ?? 0,
+            overallScore: data.overallScore ?? 0,
 
-                ATS: data.ATS
-                    ? {
-                        score: data.ATS.score ?? 0,
-                        tips: data.ATS.tips ?? [],
-                    }
-                    : null,
+            ATS: data.ATS
+                ? {
+                    score: data.ATS.score ?? 0,
+                    tips: data.ATS.tips ?? [],
+                }
+                : null,
 
-                toneAndStyle: data.toneAndStyle
-                    ? {
-                        score: data.toneAndStyle.score ?? 0,
-                    }
-                    : null,
+            toneAndStyle: data.toneAndStyle
+                ? {
+                    score: data.toneAndStyle.score ?? 0,
+                }
+                : null,
 
-                content: data.content
-                    ? {
-                        score: data.content.score ?? 0,
-                        tips: data.content.tips ?? [],
-                    }
-                    : null,
+            content: data.content
+                ? {
+                    score: data.content.score ?? 0,
+                    tips: data.content.tips ?? [],
+                }
+                : null,
 
-                structure: data.structure
-                    ? {
-                        score: data.structure.score ?? 0,
-                    }
-                    : null,
+            structure: data.structure
+                ? {
+                    score: data.structure.score ?? 0,
+                }
+                : null,
 
-                skills: data.skills
-                    ? {
-                        score: data.skills.score ?? 0,
-                        matchedSkills:
-                            data.skills.matchedSkills ?? [],
-                        missingSkills:
-                            data.skills.missingSkills ?? [],
-                        tips: data.skills.tips ?? [],
-                    }
-                    : null,
+            skills: data.skills
+                ? {
+                    score: data.skills.score ?? 0,
+                    matchedSkills:
+                        data.skills.matchedSkills ?? [],
+                    missingSkills:
+                        data.skills.missingSkills ?? [],
+                    tips: data.skills.tips ?? [],
+                }
+                : null,
 
-                experience: data.experience
-                    ? {
-                        analysis:
-                            data.experience.analysis ?? "",
-                        recommendedMetrics:
-                            data.experience.recommendedMetrics ?? [],
-                    }
-                    : null,
+            experience: data.experience
+                ? {
+                    analysis:
+                        data.experience.analysis ?? "",
+                    recommendedMetrics:
+                        data.experience.recommendedMetrics ?? [],
+                }
+                : null,
 
-                keywords: data.keywords
-                    ? {
-                        missingKeywords:
-                            data.keywords.missingKeywords ?? "",
-                        tips: data.keywords.tips ?? [],
-                    }
-                    : null,
+            keywords: data.keywords
+                ? {
+                    missingKeywords:
+                        data.keywords.missingKeywords ?? "",
+                    tips: data.keywords.tips ?? [],
+                }
+                : null,
 
-                summary: data.summary
-                    ? {
-                        alignmentScore:
-                            data.summary.alignmentScore ?? 0,
-                        tips: data.summary.tips ?? [],
-                    }
-                    : null,
+            summary: data.summary
+                ? {
+                    alignmentScore:
+                        data.summary.alignmentScore ?? 0,
+                    tips: data.summary.tips ?? [],
+                }
+                : null,
 
-                aiSuggestions: data.aiSuggestions
-                    ? {
-                        improvedSummary:
-                            data.aiSuggestions.improvedSummary ?? "",
-                    }
-                    : null,
+            aiSuggestions: data.aiSuggestions
+                ? {
+                    improvedSummary:
+                        data.aiSuggestions.improvedSummary ?? "",
+                }
+                : null,
 
-                createdAt:
-                    data.createdAt?.toDate()?.toISOString() ?? null,
+            createdAt:
+                data.createdAt?.toDate()?.toISOString() ?? null,
 
-                updatedAt:
-                    data.updatedAt?.toDate()?.toISOString() ?? null,
-            };
-        });
+            updatedAt:
+                data.updatedAt?.toDate()?.toISOString() ?? null,
+        };
+    });
 
-    const versions: ServerResumeVersion[] =
-        versionsSnapshot.docs.map((doc) => {
-            const data = doc.data();
+    const versions: ServerResumeVersion[] = versionsSnapshot.docs.map((doc) => {
+        const data = doc.data();
 
-            return {
-                id: doc.id,
-                resumeId: data.resumeId,
-                analysisId: data.analysisId,
-                userId: data.userId,
-                versionNumber: data.versionNumber,
-                fileId: data.fileId,
-                fileName: data.fileName,
-                fileType: data.fileType,
-                fileSize: data.fileSize,
-                resumeStatus: data.resumeStatus,
-                analysisStatus: data.analysisStatus,
-                extractedText: data.extractedText ?? null,
-                createdAt:
-                    data.createdAt?.toDate()?.toISOString() ?? null,
-                updatedAt:
-                    data.updatedAt?.toDate()?.toISOString() ?? null,
-            };
-        });
+        return {
+            id: doc.id,
+            resumeId: data.resumeId,
+            analysisId: data.analysisId,
+            userId: data.userId,
+            versionNumber: data.versionNumber,
+            fileId: data.fileId,
+            fileName: data.fileName,
+            fileType: data.fileType,
+            fileSize: data.fileSize,
+            resumeStatus: data.resumeStatus,
+            analysisStatus: data.analysisStatus,
+            extractedText: data.extractedText ?? null,
+            createdAt:
+                data.createdAt?.toDate()?.toISOString() ?? null,
+            updatedAt:
+                data.updatedAt?.toDate()?.toISOString() ?? null,
+        };
+    });
 
     const resume: ServerResume = {
         id: resumeSnapshot.id,
@@ -421,6 +430,10 @@ export async function getDeletionData(
 
 export async function getResumeVersionById(userId: string, resumeId: string, versionId: string,
 ) {
+    "use cache";
+
+    cacheTag(resumeVersionTag(userId, resumeId, versionId));
+
     const versionRef = adminDb
         .collection("users")
         .doc(userId)
@@ -515,6 +528,9 @@ export async function completeResumeVersionProcessing(userId: string, resumeId: 
         resumeStatus: "ready",
         updatedAt: FieldValue.serverTimestamp(),
     });
+
+    revalidateTag(resumeListTag(userId), "max");
+    revalidateTag(resumeVersionTag(userId, resumeId, versionId), "max");
 }
 
 export async function failResumeVersionProcessing(
@@ -545,4 +561,7 @@ export async function failResumeVersionProcessing(
         resumeStatus: "failed",
         updatedAt: FieldValue.serverTimestamp(),
     });
+
+    revalidateTag(resumeListTag(userId), "max");
+    revalidateTag(resumeVersionTag(userId, resumeId, versionId), "max");
 }

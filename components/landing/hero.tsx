@@ -101,7 +101,7 @@ export default function Hero() {
                 <div className="relative">
                     <div className="absolute -inset-4 rounded-2xl bg-amber-500/10 blur-3xl pointer-events-none" />
 
-                    <div className="relative rounded-lg border border-zinc-800/80 bg-zinc-900/90 p-3 shadow-2xl backdrop-blur-xl">
+                    <div className="relative rounded-[28px] border border-zinc-800/80 bg-zinc-900/90 p-3 shadow-2xl backdrop-blur-xl">
                         <div className="rounded-[1.8rem] border border-zinc-800 bg-zinc-950/80 p-5 sm:p-7">
 
                             {/* Window Header */}

@@ -1,10 +1,14 @@
 import {NextRequest, NextResponse} from "next/server";
-import {completeAnalysis, createAnalysisDocument} from "@/lib/firebase/admin-analysis";
+import {completeAnalysis, createAnalysisDocument, failAnalysis} from "@/lib/firebase/admin-analysis";
 import {analyzeResumeWithAI} from "@/lib/gemini/analyze-resume";
 import {getResumeById, getResumeVersionById} from "@/lib/firebase/admin-resumes";
 import {verifyFirebaseToken} from "@/lib/firebase/verify-token";
 
 export async function POST(request: NextRequest, {params}: { params: Promise<{ resumeId: string; }>; },) {
+    let userId: string | undefined;
+    let resumeId: string | undefined;
+    let analysisId: string | undefined;
+
     try {
         //Authenticate the user
         const decodedToken = await verifyFirebaseToken(request);
@@ -94,16 +98,22 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
         )
 
     } catch (error) {
-        console.error("Resume analysis error:", error,);
+        console.error("Resume analysis error:", error);
 
-        return NextResponse.json(
-            {
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to analyze resume.",
-            },
-            {status: 500},
-        );
+        try {
+            if (userId && resumeId && analysisId) {
+                await failAnalysis(userId, resumeId, analysisId);
+            }
+        } catch (error) {
+            return NextResponse.json(
+                {
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : "Failed to analyze resume.",
+                },
+                {status: 500},
+            );
+        }
     }
 }
