@@ -12,21 +12,8 @@ import {
     X,
 } from "lucide-react";
 import { getResumeVersions, viewResumeVersion, downloadResumeVersion } from "@/lib/api/resumes";
-import { Resume } from "@/utils/types";
-
-interface ResumeVersion {
-    id: string;
-    resumeId: string;
-    userId: string;
-    fileId: string;
-    fileName: string;
-    fileType: string;
-    fileSize: number;
-    versionNumber: number;
-    status: "uploaded" | "processing" | "completed" | "failed";
-    createdAt: string | null;
-    updatedAt: string | null;
-}
+import { Resume, ResumeVersion } from "@/utils/types";
+import Link from "next/link";
 
 interface VersionHistoryModalProps {
     open: boolean;
@@ -48,6 +35,14 @@ function formatDate(date: string | null) {
     }).format(new Date(date));
 }
 
+function capitalize(status: string | null) {
+    if (!status) {
+        return "";
+    }
+
+    return status.charAt(0).toUpperCase() + status.slice(1);
+}
+
 function formatFileSize(bytes: number) {
     if (bytes < 1024) {
         return `${bytes} B`;
@@ -60,11 +55,7 @@ function formatFileSize(bytes: number) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function VersionHistoryModal({
-                                        open,
-                                        resume,
-                                        onClose,
-                                    }: VersionHistoryModalProps) {
+export function VersionHistoryModal({open, resume, onClose}: VersionHistoryModalProps) {
     const [versions, setVersions] = useState<ResumeVersion[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -319,9 +310,10 @@ export function VersionHistoryModal({
 
                             {versions.map((version) => {
                                 const isCurrent = version.fileId === resume.fileId;
+                                const hasAnalysis = Boolean(version.analysisId);
 
-                                return (
-                                    <div key={version.id} className="group relative">
+                                const content = (
+                                    <>
                                         {/* Numbered Timeline Node Badge */}
                                         <div
                                             className={`absolute -left-8 top-4 flex size-7 -translate-x-1/2 items-center justify-center rounded-full border text-[10px] font-black transition-all sm:-left-10 ${
@@ -388,7 +380,7 @@ export function VersionHistoryModal({
                                                                 type="button"
                                                                 onClick={() => handleDownloadVersion(version)}
                                                                 disabled={downloadingVersionId === version.id || viewingVersionId === version.id}
-                                                                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800  bg-zinc-900/80 px-2.5 py-1 text-[10px] font-bold text-zinc-300 transition-all hover:bg-amber-400/10 hover:border-amber-400/30  hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                                                                className="inline-flex items-center gap-1.5 rounded-full border border-zinc-800  bg-zinc-900/80 px-2.5 py-1 text-[10px] font-bold text-zinc-300 transition-all hover:bg-amber-400/10 hover:border-amber-400/30  hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-50 hover:cursor-pointer"
                                                             >
                                                                 {downloadingVersionId === version.id ? (
                                                                     <Loader2 className="size-3 animate-spin text-amber-400" />
@@ -416,11 +408,33 @@ export function VersionHistoryModal({
                                                         <span className="rounded-md border border-zinc-800 bg-zinc-900/60 px-2 py-0.5 uppercase tracking-wider text-zinc-300">
                                                             {version.fileType.includes("pdf") ? "PDF" : "DOCX"}
                                                         </span>
+
+                                                        <span className="rounded-md border border-zinc-800 bg-zinc-900/60 px-2 py-0.5 capitalize">
+                                                            {capitalize(version.analysisId ? version.analysisStatus : version.resumeStatus)}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </>
+                                );
+
+                                if (!hasAnalysis) {
+                                    return (
+                                        <div key={version.id} className="group relative">
+                                            {content}
+                                        </div>
+                                    );
+                                }
+
+                                return (
+                                    <Link
+                                        key={version.id}
+                                        href={`/resumes/${version.resumeId}/analysis/${version.analysisId}`}
+                                        className="group relative block"
+                                    >
+                                        {content}
+                                    </Link>
                                 );
                             })}
                         </div>

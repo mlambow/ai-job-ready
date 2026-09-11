@@ -59,14 +59,14 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
 
                 setAuthMode('signup')
                 setIsSuccess(true);
-                router.push("/dashboard");
+                router.push("/resumes");
             } else {
                 // Handle Sign In
                 await signInWithEmail(email, password);
 
                 setAuthMode('signin')
                 setIsSuccess(true)
-                router.push("/dashboard");
+                router.push("/resumes");
             }
         } catch (err) {
             setError(authErrorMessage(err));

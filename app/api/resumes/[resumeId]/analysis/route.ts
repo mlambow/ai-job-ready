@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyFirebaseToken } from "@/lib/firebase/verify-token";
 import { getResumeById } from "@/lib/firebase/admin-resumes";
-import { getResumeAnalysisById } from "@/lib/firebase/admin-analysis";
+import { getResumeAnalysis } from "@/lib/firebase/admin-analysis";
 
 export async function GET(
     request: NextRequest,
@@ -35,10 +35,9 @@ export async function GET(
         }
 
         const analysis =
-            await getResumeAnalysisById(
+            await getResumeAnalysis(
                 userId,
                 resumeId,
-                resume.currentVersionId,
             );
 
         if (!analysis) {

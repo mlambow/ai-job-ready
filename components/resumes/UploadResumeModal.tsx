@@ -255,7 +255,7 @@ export function UploadResumeModal({open, onClose, onUploaded,
                         type="button"
                         onClick={handleClose}
                         disabled={uploading}
-                        className="rounded-full px-5 py-2.5 text-xs font-bold text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-full px-5 py-2.5 text-xs font-bold text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -264,7 +264,7 @@ export function UploadResumeModal({open, onClose, onUploaded,
                         type="button"
                         onClick={handleUpload}
                         disabled={!file || uploading}
-                        className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-6 py-2.5 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-6 py-2.5 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {uploading ? (
                             <Loader2 className="size-4 animate-spin text-zinc-950" />

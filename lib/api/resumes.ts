@@ -65,9 +65,7 @@ export async function getResumes() {
 
     const response = await fetch("/api/resumes",
         {method: "GET",
-            headers: {
-                Authorization: `Bearer ${idToken}`,
-            },
+            headers: {Authorization: `Bearer ${idToken}`},
             cache: "no-store",
         },
     );
@@ -104,8 +102,7 @@ export async function deleteResume(resumeId: string) {
         },
     );
 
-    const data =
-        await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
         throw new Error(
@@ -332,10 +329,10 @@ export async function processResume(resumeId: string) {
     const contentType = response.headers.get("content-type");
 
     if (!contentType?.includes("application/json")) {
-        const text = await response.text();
+        const text = await response.json();
 
         console.error(
-            "Non-JSON response:",
+            "JSON response:",
             {
                 status: response.status,
                 text,

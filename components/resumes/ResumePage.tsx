@@ -5,10 +5,11 @@ import {
     deleteResume,
     viewResume,
     downloadResume,
-    getResumeVersionById,
+    getResumeVersionById, getResumeAnalysisById,
 } from "@/lib/api/resumes";
 
 import {
+    useCallback,
     useEffect,
     useMemo,
     useState,
@@ -25,7 +26,7 @@ import {
 } from "lucide-react";
 
 import {
-    Resume,
+    Resume, ResumeAnalysis,
     ResumeVersion,
 } from "@/utils/types";
 
@@ -49,10 +50,7 @@ interface ToastNotification {
 export function ResumesPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [resumes, setResumes] = useState<Resume[]>([]);
-    const [
-        currentResumeVersions,
-        setCurrentResumeVersions,
-    ] = useState<Record<string, ResumeVersion>>({});
+    const [currentResumeVersions, setCurrentResumeVersions] = useState<Record<string, ResumeVersion>>({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -60,13 +58,10 @@ export function ResumesPage() {
     const [uploadOpen, setUploadOpen] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<Resume | null>(null);
     const [replaceResume, setReplaceResume] = useState<Resume | null>(null);
-    const [
-        versionHistoryResume,
-        setVersionHistoryResume,
-    ] = useState<Resume | null>(null);
+    const [versionHistoryResume, setVersionHistoryResume] = useState<Resume | null>(null);
     const [toast, setToast] = useState<ToastNotification | null>(null);
     const [analyzeResume, setAnalyzeResume] = useState<Resume | null>(null);
-    const [analysisResume, setAnalysisResume] = useState<Resume | null>(null);
+    const [companyNames, setCompanyNames] = useState<Record<string, string | null>>({});
     const router = useRouter();
 
     function showToast(
@@ -124,6 +119,39 @@ export function ResumesPage() {
 
             // 4. Store all current versions
             setCurrentResumeVersions(versionMap);
+
+            // 5. Fetch analyses for versions that have an analysisId
+            const analyses = await Promise.all(
+                Object.values(versionMap).map(async (version) => {
+                    // Check if your ResumeVersion object stores analysisId
+                    if (!version.analysisId) return null;
+
+                    try {
+                        return await getResumeAnalysisById(
+                            version.resumeId,
+                            version.analysisId,
+                        );
+                    } catch (error) {
+                        setError(
+                            error instanceof Error
+                                ? error.message
+                                : "Unable to load resume version.",
+                        );
+                    }
+                }),
+            );
+
+            // 5. Create company name map: resumeId -> companyName
+            const companyNameMap: Record<string, string | null> = {};
+
+            analyses.forEach((analysis) => {
+                if (analysis) {
+                    companyNameMap[analysis.resumeId] = analysis.companyName;
+                }
+            });
+
+            // Store company names in state
+            setCompanyNames(companyNameMap);
 
         } catch (err) {
             setError(
@@ -192,15 +220,47 @@ export function ResumesPage() {
         loadResumes();
     }, []);
 
-    async function handleSignOut() {
+    const handleResumeView = useCallback(async (resume: { id: string }) => {
         try {
-            await signOutUser();
+            const blob = await viewResume(resume.id);
+            const url = URL.createObjectURL(blob);
 
-            router.push("/");
-        } catch (error) {
-            console.error("Failed to sign out:", error,);
+            window.open(url, "_blank");
+
+            setTimeout(() => {
+                URL.revokeObjectURL(url);
+            }, 60_000);
+        } catch (err) {
+            showToast(
+                "error",
+                "Unable to view resume",
+                err instanceof Error ? err.message : undefined
+            );
         }
-    }
+    }, [viewResume, showToast]);
+
+    const handleResumeDownload = useCallback(async (resume: { id: string; fileName: string; }) => {
+        try {
+            const blob = await downloadResume(resume.id);
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = resume.fileName;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            showToast(
+                "error",
+                "Download failed",
+                err instanceof Error ? err.message : undefined
+            );
+        }
+    }, [downloadResume, showToast]);
 
     const filteredResumes = useMemo(() => {
         const query =
@@ -269,7 +329,7 @@ export function ResumesPage() {
                             Resume workspace
                         </div>
 
-                        <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                        <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
                             My Resumes
                         </h1>
 
@@ -281,60 +341,53 @@ export function ResumesPage() {
                         </p>
                     </div>
 
-                    <button
-                        type="button"
-                        onClick={() =>
-                            setUploadOpen(true)
-                        }
-                        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98]"
-                    >
-                        <Plus className="size-4" />
-                        Upload Resume
-                    </button>
+                    {resumes.length > 0 && (
+                        <button
+                            type="button"
+                            onClick={() => setUploadOpen(true)}
+                            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98]"
+                        >
+                            <Plus className="size-4"/>
+                            Upload Resume
+                        </button>
+                    )}
                 </div>
 
                 {/* Search */}
-                <div className="mt-8">
+                <div className="mt-6">
 
-                    <div className="relative max-w-md">
+                    <div className="relative sm:w-full md:max-w-md">
                         <Search className="absolute left-3.5 top-1/2 z-10 size-5 -translate-y-1/2 text-amber-400/50" />
 
                         <input
                             type="search"
                             value={searchQuery}
                             onChange={(event) =>
-                                setSearchQuery(
-                                    event.target.value,
-                                )
+                                setSearchQuery(event.target.value)
                             }
                             placeholder="Search resumes by title or key skill..."
                             className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 py-3 pl-10 pr-4 text-xs text-white outline-none transition placeholder:text-zinc-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 backdrop-blur-md sm:text-sm"
                         />
                     </div>
-
-                    <button
-                        onClick={handleSignOut}
-                        className="mt-4 cursor-pointer rounded-xl bg-rose-500/40 px-4 py-2 text-red-400"
-                    >
-                        Sign Out
-                    </button>
                 </div>
 
                 {/* Resume List */}
-                <div className="mt-8">
+                <div className="mt-6">
 
                     <div className="relative rounded-[2.5rem] border border-zinc-800/80 bg-zinc-900/60 shadow-2xl backdrop-blur-xl">
 
-                        <div className="rounded-t-[2.5rem] border-b border-zinc-800/80 px-6 py-5 sm:px-8">
-                            <h2 className="text-sm font-bold text-white">
-                                Your uploaded documents
-                            </h2>
+                        {resumes.length > 0 && (
+                            <div className="rounded-t-[2.5rem] border-b border-zinc-800/80 px-6 py-5 sm:px-8">
+                                <h2 className="text-sm font-bold text-white">
+                                    Your uploaded documents
+                                </h2>
 
-                            <p className="mt-1 text-xs text-zinc-400">
-                                Resumes ready for job-matching
-                                and automated ATS analysis.
-                            </p>
-                        </div>
+                                <p className="mt-1 text-xs text-zinc-400">
+                                    Resumes ready for job-matching
+                                    and automated ATS analysis.
+                                </p>
+                            </div>
+                        )}
 
                         {loading ? (
                             <div className="space-y-3 p-6">
@@ -380,9 +433,7 @@ export function ResumesPage() {
 
                                 <button
                                     type="button"
-                                    onClick={() =>
-                                        setUploadOpen(true)
-                                    }
+                                    onClick={() => setUploadOpen(true)}
                                     className="mt-6 inline-flex cursor-pointer items-center gap-2 rounded-full border border-zinc-700 bg-zinc-800 px-6 py-3 text-xs font-bold text-white transition-all hover:border-amber-400/40 hover:bg-zinc-700 active:scale-[0.98]"
                                 >
                                     <UploadCloud className="size-4 text-amber-400" />
@@ -399,70 +450,18 @@ export function ResumesPage() {
                                         <ResumeRow
                                             key={resume.id}
                                             resume={resume}
-                                            currentVersion={
-                                                currentResumeVersions[resume.id]
-                                            }
-                                            onAnalyze={(resume,) => setAnalyzeResume(resume)}
-                                            onResumeView={async (
-                                                resume,
-                                            ) => {
-                                                try {
-                                                    const blob = await viewResume(resume.id,);
-
-                                                    const url = URL.createObjectURL(blob,);
-
-                                                    window.open(url, "_blank",);
-
-                                                    setTimeout(
-                                                        () =>
-                                                            URL.revokeObjectURL(
-                                                                url,
-                                                            ),
-                                                        60_000,
-                                                    );
-
-                                                } catch (err) {
-                                                    showToast(
-                                                        "error",
-                                                        "Unable to view resume",
-                                                        err instanceof Error
-                                                            ? err.message
-                                                            : undefined,
-                                                    );
-                                                }
-                                            }}
-                                            onResumeDownload={async (resume,) => {
-                                                try {
-                                                    const blob = await downloadResume(resume.id);
-                                                    const url = URL.createObjectURL(blob);
-                                                    const link = document.createElement("a");
-                                                    link.href = url;
-                                                    link.download = resume.fileName;
-                                                    document.body.appendChild(link,);
-
-                                                    link.click();
-
-                                                    link.remove();
-
-                                                    URL.revokeObjectURL(url,);
-
-                                                } catch (err) {
-                                                    showToast(
-                                                        "error",
-                                                        "Download failed",
-                                                        err instanceof Error
-                                                            ? err.message
-                                                            : undefined,
-                                                    );
-                                                }
-                                            }}
+                                            companyName={companyNames[resume.id]}
+                                            currentVersion={currentResumeVersions[resume.id]}
+                                            onAnalyze={(resume) => setAnalyzeResume(resume)}
+                                            onResumeView={handleResumeView}
+                                            onResumeDownload={handleResumeDownload}
                                             onReplace={(resume) =>
                                                 setReplaceResume(resume)
                                             }
-                                            onVersionHistory={(resume,) =>
+                                            onVersionHistory={(resume) =>
                                                 setVersionHistoryResume(resume)
                                             }
-                                            onDelete={(resume,) =>
+                                            onDelete={(resume) =>
                                                 setDeleteTarget(resume)
                                             }
                                         />

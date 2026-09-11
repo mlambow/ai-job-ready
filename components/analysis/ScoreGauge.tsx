@@ -8,7 +8,7 @@ interface ScoreGaugeProps {
     strokeWidth?: number;
 }
 
-export function ScoreGauge({
+export default function ScoreGauge({
                                score,
                                label,
                                sublabel,

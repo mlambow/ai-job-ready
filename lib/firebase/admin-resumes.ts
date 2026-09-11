@@ -1,8 +1,8 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "./admin";
 import {ServerResume, ServerResumeAnalysis, ServerResumeVersion} from "@/utils/types";
-import {cacheTag, revalidateTag} from "next/cache";
-import {resumeListTag, resumeTag, resumeVersionTag} from "@/lib/cache/resumeCache";
+import {cacheLife, cacheTag, revalidateTag} from "next/cache";
+import {resumeListTag, resumeTag, resumeVersionsListTag, resumeVersionTag} from "@/lib/cache/resumeCache";
 
 export async function createResumeDocument(userId: string,
     data: {
@@ -53,7 +53,7 @@ export async function createResumeDocument(userId: string,
         updatedAt: now,
     });
 
-    revalidateTag(resumeListTag(userId), 'max');
+    // revalidateTag(resumeListTag(userId), 'max');
 
     return resumeRef.id;
 }
@@ -62,6 +62,8 @@ export async function getUserResumes(userId: string): Promise<ServerResume[]> {
     "use cache";
 
     cacheTag(resumeListTag(userId));
+
+    cacheLife('weeks')
 
     const snapshot = await adminDb
         .collection("users")
@@ -90,9 +92,9 @@ export async function getUserResumes(userId: string): Promise<ServerResume[]> {
 }
 
 export async function getResumeById(userId: string, resumeId: string,): Promise<ServerResume | null> {
-    'use cache'
-
-    cacheTag(resumeTag(userId, resumeId))
+    // 'use cache'
+    //
+    // cacheTag(resumeTag(userId, resumeId))
 
     const resumeRef = adminDb
         .collection("users")
@@ -206,7 +208,8 @@ export async function createResumeVersion(userId: string, resumeId: string,
                 }
             );
 
-            revalidateTag(resumeListTag(userId), "max");
+            // revalidateTag(resumeListTag(userId), "max");
+            // revalidateTag(resumeVersionsListTag(userId, resumeId), "max")
 
             return {
                 versionId:
@@ -219,6 +222,10 @@ export async function createResumeVersion(userId: string, resumeId: string,
 
 export async function getResumeVersions(userId: string, resumeId: string,
 ): Promise<ServerResumeVersion[]> {
+    'use cache'
+    cacheTag(resumeVersionsListTag(userId, resumeId))
+    cacheLife("weeks")
+
     const versionsSnapshot =
         await adminDb
             .collection("users")
@@ -429,10 +436,10 @@ export async function getDeletionData(userId: string, resumeId: string,): Promis
 }
 
 export async function getResumeVersionById(userId: string, resumeId: string, versionId: string,
-) {
+): Promise<ServerResumeVersion | null> {
     "use cache";
-
     cacheTag(resumeVersionTag(userId, resumeId, versionId));
+    cacheLife('weeks')
 
     const versionRef = adminDb
         .collection("users")
@@ -530,6 +537,7 @@ export async function completeResumeVersionProcessing(userId: string, resumeId: 
     });
 
     revalidateTag(resumeListTag(userId), "max");
+    revalidateTag(resumeVersionsListTag(userId, resumeId), "max");
     revalidateTag(resumeVersionTag(userId, resumeId, versionId), "max");
 }
 
@@ -562,6 +570,6 @@ export async function failResumeVersionProcessing(
         updatedAt: FieldValue.serverTimestamp(),
     });
 
-    revalidateTag(resumeListTag(userId), "max");
-    revalidateTag(resumeVersionTag(userId, resumeId, versionId), "max");
+    // revalidateTag(resumeListTag(userId), "max");
+    // revalidateTag(resumeVersionTag(userId, resumeId, versionId), "max");
 }

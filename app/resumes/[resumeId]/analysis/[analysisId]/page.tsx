@@ -57,18 +57,19 @@ export default function ResumeAnalysisPage({ params }: AnalysisPageProps) {
 
     if (error || !analysis) {
         return (
-            <div className="mx-auto max-w-lg rounded-3xl border border-rose-500/20 bg-rose-500/10 p-6 text-center">
-                <AlertCircle className="mx-auto size-8 text-rose-400" />
-                <h2 className="mt-2 text-sm font-semibold text-white">Error Loading Report</h2>
-                <p className="mt-1 text-xs text-rose-300">{error || "Analysis report not found."}</p>
-                <button
-                    type="button"
-                    onClick={() => router.push("/dashboard")}
-                    className="mt-4 rounded-xl bg-zinc-900 px-4 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-800"
-                >
-                    Return to Dashboard
-                </button>
-                <p>{error}</p>
+            <div className="flex min-h-screen w-full items-center justify-center p-4">
+                <div className="w-full max-w-xl rounded-3xl border border-rose-500/20 bg-rose-500/10 p-8 text-center shadow-lg">
+                    <AlertCircle className="mx-auto size-12 text-rose-400" />
+                    <h2 className="mt-4 text-xl font-semibold text-white">Error Loading Report</h2>
+                    <p className="mt-2 text-base text-rose-300">{error || "Analysis report not found."}</p>
+                    <button
+                        type="button"
+                        onClick={() => router.push("/dashboard")}
+                        className="mt-6 rounded-xl bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-300 transition-colors hover:bg-zinc-800 cursor-pointer"
+                    >
+                        Return to Dashboard
+                    </button>
+                </div>
             </div>
         );
     }

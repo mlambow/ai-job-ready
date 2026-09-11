@@ -1,7 +1,7 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import {CompleteResumeAnalysisData, ServerResumeAnalysis} from "@/utils/types";
-import {cacheTag, revalidateTag} from "next/cache";
+import {cacheLife, cacheTag, revalidateTag} from "next/cache";
 import {resumeAnalysisByIdTag, resumeAnalysisTag, resumeListTag} from "@/lib/cache/resumeCache";
 
 export async function getResumeAnalysisById(
@@ -10,8 +10,8 @@ export async function getResumeAnalysisById(
     analysisId: string,
 ): Promise<ServerResumeAnalysis | null> {
     'use cache'
-
     cacheTag(resumeAnalysisByIdTag(userId, resumeId, analysisId));
+    cacheLife("weeks");
 
     const analysisRef = adminDb
         .collection("users")
@@ -278,7 +278,7 @@ export async function completeAnalysis(
 
     await batch.commit();
 
-    revalidateTag(resumeListTag(userId), "max");
+    // revalidateTag(resumeListTag(userId), "max");
     revalidateTag(resumeAnalysisTag(userId, resumeId), "max");
 }
 
@@ -327,8 +327,8 @@ export async function failAnalysis(
 
     await batch.commit();
 
-    revalidateTag(resumeListTag(userId), "max");
-    revalidateTag(resumeAnalysisTag(userId, resumeId), "max");
+    // revalidateTag(resumeListTag(userId), "max");
+    // revalidateTag(resumeAnalysisTag(userId, resumeId), "max");
 }
 
 export async function getResumeAnalysis(
@@ -337,7 +337,7 @@ export async function getResumeAnalysis(
 ): Promise<ServerResumeAnalysis[]> {
     "use cache";
 
-    cacheTag(resumeAnalysisTag(userId, resumeId));
+    // cacheTag(resumeAnalysisTag(userId, resumeId));
 
     const snapshot = await adminDb
         .collection("users")

@@ -28,11 +28,10 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
       //Get the parent resume
       const resume = await getResumeById(userId, resumeId);
       if (!resume) {
-          return NextResponse.json({
-              error: "Resume not found"
-          }, {
-              status: 404
-          })
+          return NextResponse.json(
+              {error: "Resume not found"},
+              {status: 404}
+          )
       }
 
       versionId = resume.currentVersionId
@@ -52,9 +51,22 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
 
       //Download the file
       const file = await downloadResumeFile(version.fileId);
+      if(!file) {
+          return NextResponse.json({
+              error: "File (resume to download) not found"
+          }, {
+              status: 404
+          })
+      }
 
       //Extract text
       const extractedText = await extractResumeText(file, version.fileType);
+      if(!extractedText) {
+          return NextResponse.json(
+              {error: "Text from resume could not be extracted"},
+              {status: 404}
+          )
+      }
 
       //Complete processing and save text
       await completeResumeVersionProcessing(userId, resumeId, versionId, extractedText);

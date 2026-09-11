@@ -4,6 +4,9 @@ export const resumeListTag = (userId: string) =>
 export const resumeTag = (userId: string, resumeId: string) =>
     `resume:${userId}:${resumeId}`;
 
+export const resumeVersionsListTag = (userId: string, resumeId: string) =>
+    `resume:${userId}:${resumeId}`;
+
 export const resumeVersionTag = (
     userId: string,
     resumeId: string,

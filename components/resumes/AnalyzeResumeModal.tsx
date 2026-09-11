@@ -161,8 +161,7 @@ export function AnalyzeResumeModal({
                                         htmlFor="companyName"
                                         className="mb-1.5 block text-xs font-medium text-zinc-300"
                                     >
-                                        Company Name{" "}
-                                        <span className="font-normal text-zinc-500">(Optional)</span>
+                                        Company Name
                                     </label>
                                     <input
                                         id="companyName"

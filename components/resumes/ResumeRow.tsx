@@ -2,49 +2,24 @@
 
 import {
     FileText,
-    MoreHorizontal,
+    MoreHorizontal, MoreVertical,
     Sparkles,
 } from "lucide-react";
-
 import { useState } from "react";
-
 import { ResumeStatus } from "@/components/resumes/ResumeStatus";
-
 import { ResumeMenu } from "@/components/resumes/ResumeMenu";
-
-import {
-    Resume,
-    ResumeVersion,
-} from "@/utils/types";
+import {Resume, ResumeVersion} from "@/utils/types";
 
 interface ResumeRowProps {
     resume: Resume;
-
     currentVersion?: ResumeVersion;
-
-    onAnalyze: (
-        resume: Resume,
-    ) => void;
-
-    onResumeView: (
-        resume: Resume,
-    ) => void;
-
-    onResumeDownload: (
-        resume: Resume,
-    ) => void;
-
-    onReplace: (
-        resume: Resume,
-    ) => void;
-
-    onVersionHistory: (
-        resume: Resume,
-    ) => void;
-
-    onDelete: (
-        resume: Resume,
-    ) => void;
+    companyName?: string | null;
+    onAnalyze: (resume: Resume) => void;
+    onResumeView: (resume: Resume) => void;
+    onResumeDownload: (resume: Resume) => void;
+    onReplace: (resume: Resume) => void;
+    onVersionHistory: (resume: Resume) => void;
+    onDelete: (resume: Resume) => void;
 }
 
 function formatFileSize(bytes: number) {
@@ -63,9 +38,7 @@ function formatFileSize(bytes: number) {
     ).toFixed(1)} MB`;
 }
 
-function formatDate(
-    date: string | null,
-) {
+function formatDate(date: string | null) {
     if (!date) {
         return "Recently";
     }
@@ -77,14 +50,13 @@ function formatDate(
             day: "numeric",
             year: "numeric",
         },
-    ).format(
-        new Date(date),
-    );
+    ).format(new Date(date));
 }
 
 export function ResumeRow({
                               resume,
                               currentVersion,
+                                companyName,
                               onAnalyze,
                               onResumeView,
                               onResumeDownload,
@@ -92,8 +64,7 @@ export function ResumeRow({
                               onVersionHistory,
                               onDelete,
                           }: ResumeRowProps) {
-    const [menuOpen, setMenuOpen] =
-        useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
 
     const isPdf =
         resume.fileType ===
@@ -120,7 +91,7 @@ export function ResumeRow({
 
                 <div className="min-w-0 space-y-1">
 
-                    <div className="flex flex-wrap items-center gap-2.5">
+                    <div className="flex items-center gap-2.5">
 
                         <h3 className="truncate text-xs font-bold text-white transition-colors group-hover:text-amber-300 sm:text-sm">
                             {resume.fileName}
@@ -140,9 +111,7 @@ export function ResumeRow({
                     <div className="flex flex-wrap items-center gap-2 text-[11px] font-medium text-zinc-400">
 
                         <span className="font-semibold uppercase text-zinc-300">
-                            {isPdf
-                                ? "PDF"
-                                : "DOCX"}
+                            {isPdf ? "PDF" : "DOCX"}
                         </span>
 
                         <span className="text-zinc-600">
@@ -166,16 +135,15 @@ export function ResumeRow({
                         </span>
 
                         {/* Current version number */}
-                        {currentVersion && (
+                        {companyName && (
                             <>
                                 <span className="text-zinc-600">
                                     •
                                 </span>
 
                                 <span className="text-amber-400/80">
-                                    Version{" "}
                                     {
-                                        currentVersion.versionNumber
+                                        companyName
                                     }
                                 </span>
                             </>
@@ -189,17 +157,12 @@ export function ResumeRow({
 
                 <button
                     type="button"
-                    onClick={() =>
-                        onAnalyze(resume)
-                    }
+                    onClick={() => onAnalyze(resume)}
                     aria-label="Analyze resume"
-                    disabled={
-                        !canAnalyze
-                    }
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-zinc-950 shadow-md shadow-amber-500/5 transition-all hover:bg-amber-300 active:scale-[0.98] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!canAnalyze}
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-amber-400 px-4 py-2 text-xs font-bold text-zinc-950 shadow-md shadow-amber-500/5 transition-all hover:bg-amber-300 active:scale-[0.98] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     <Sparkles className="size-3.5" />
-
                     Analyze
                 </button>
 
@@ -220,12 +183,14 @@ export function ResumeRow({
                         onClick={() =>
                             setMenuOpen(
                                 (value) =>
-                                    !value,
+                                    !value
                             )
                         }
                         className="flex size-9 cursor-pointer items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
                     >
-                        <MoreHorizontal className="size-4" />
+                        <MoreVertical className="size-4 block sm:hidden" />
+
+                        <MoreHorizontal className="hidden size-4 sm:block" />
                     </button>
 
                     <ResumeMenu
