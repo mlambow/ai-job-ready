@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Mail, Lock, Eye, EyeOff, Loader2, Sparkles, AlertCircle, User } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -36,8 +36,20 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    useEffect(() => {
+        if (!isSuccess) return;
+
+        router.prefetch("/dashboard");
+
+        const timeout = setTimeout(() => {
+            router.push("/dashboard");
+        }, 3000);
+
+        return () => clearTimeout(timeout);
+    }, [isSuccess, router]);
+
     if (isSuccess) {
-        return <RedirectingState mode={authMode}/>;
+        return <RedirectingState mode={authMode} />;
     }
 
     async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -59,14 +71,14 @@ export function AuthForm({ mode = "signin" }: AuthFormProps) {
 
                 setAuthMode('signup')
                 setIsSuccess(true);
-                router.push("/resumes");
+                //router.push("/resumes");
             } else {
                 // Handle Sign In
                 await signInWithEmail(email, password);
 
                 setAuthMode('signin')
                 setIsSuccess(true)
-                router.push("/resumes");
+                //router.push("/resumes");
             }
         } catch (err) {
             setError(authErrorMessage(err));

@@ -245,7 +245,7 @@ export function VersionHistoryModal({open, resume, onClose}: VersionHistoryModal
                     <button
                         type="button"
                         onClick={onClose}
-                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white"
+                        className="flex size-9 shrink-0 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white hover:cursor-pointer"
                         aria-label="Close modal"
                     >
                         <X className="size-4" />

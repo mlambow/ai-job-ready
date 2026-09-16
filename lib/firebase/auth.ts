@@ -3,9 +3,10 @@ import {
     createUserWithEmailAndPassword,
     GoogleAuthProvider,
     sendEmailVerification,
-    signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile
+    signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile, deleteUser, sendPasswordResetEmail
 } from "@firebase/auth";
 import {createUserProfile, getUserProfile} from "@/lib/firebase/firestore";
+import {onAuthStateChanged} from "firebase/auth";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -57,6 +58,48 @@ export async function signInWithGoogle () {
     return user
 }
 
+export async function forgotPassword (email: string) {
+    await sendPasswordResetEmail(auth, email)
+}
+
+export async function deleteUserAccount () {
+    const user = auth.currentUser;
+
+    if (!user) {
+        return {
+            status: "error",
+            message: "No active user session found.",
+        };
+    }
+    await deleteUser(user)
+
+    return {
+        message: 'User deleted successfully.',
+        status: 'success',
+    }
+}
+
 export async function signOutUser () {
     await signOut(auth)
+}
+
+export function waitForUser() {
+    return new Promise<NonNullable<typeof auth.currentUser>>(
+        (resolve, reject) => {
+            const unsubscribe = onAuthStateChanged(
+                auth,
+                (user) => {
+                    unsubscribe();
+
+                    if (!user) {
+                        reject(new Error("You must be signed in."));
+                        return;
+                    }
+
+                    resolve(user);
+                },
+                reject,
+            );
+        },
+    );
 }

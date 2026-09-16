@@ -26,23 +26,14 @@ export async function GET(request: Request) {
             message.includes("auth/id-token")
         ) {
             return NextResponse.json(
-                {
-                    error: "Unauthorized.",
-                },
-                {
-                    status: 401,
-                },
+                {error: "Unauthorized.",},
+                {status: 401},
             );
         }
 
         return NextResponse.json(
-            {
-                error:
-                    "Unable to load resumes.",
-            },
-            {
-                status: 500,
-            },
+            {error: "Unable to load resumes."},
+            {status: 500},
         );
     }
 }

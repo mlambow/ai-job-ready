@@ -171,7 +171,7 @@ export function ReplaceResumeModal({
                         type="button"
                         onClick={handleClose}
                         disabled={uploading}
-                        className="flex size-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex size-9 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close modal"
                     >
                         <X className="size-4" />
@@ -274,7 +274,7 @@ export function ReplaceResumeModal({
                         type="button"
                         onClick={handleClose}
                         disabled={uploading}
-                        className="rounded-full border border-zinc-800/80 bg-zinc-800/40 px-5 py-2.5 text-xs font-bold text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-full border border-zinc-800/80 bg-zinc-800/40 px-5 py-2.5 text-xs font-bold text-zinc-300 transition-all hover:border-zinc-700 hover:bg-zinc-800 hover:text-white hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>
@@ -283,7 +283,7 @@ export function ReplaceResumeModal({
                         type="button"
                         onClick={handleReplace}
                         disabled={!file || uploading}
-                        className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400 px-5 py-2.5 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-400/10 transition-all hover:bg-amber-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400 px-5 py-2.5 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-400/10 transition-all hover:bg-amber-300 hover:cursor-pointer active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {uploading ? (
                             <>

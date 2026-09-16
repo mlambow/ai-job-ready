@@ -49,7 +49,7 @@ export default function Hero() {
                         AI-powered resume optimization
                     </div>
 
-                    <h1 className="max-w-3xl text-5xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                    <h1 className="max-w-3xl text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-6xl lg:text-7xl">
                         Make your resume{" "}
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500">
                         match the job.
@@ -197,13 +197,15 @@ export default function Hero() {
                                 />
                             </div>
 
-                            <div className="mt-5 flex items-center justify-between rounded-full border border-amber-400/20 bg-amber-400/5 px-4 py-3">
+                            <Link
+                                href="/sign-up"
+                                className="mt-5 flex items-center justify-between rounded-full border border-amber-400/20 bg-amber-400/5 px-4 py-3">
                                   <span className="text-xs font-semibold text-amber-300">
                                     Ready to improve your resume?
                                   </span>
 
                                 <ArrowRight className="size-4 text-amber-400" />
-                            </div>
+                            </Link>
                         </div>
                     </div>
                 </div>

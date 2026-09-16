@@ -4,14 +4,12 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import {
-    AlertTriangle,
+    AlertTriangle, ArrowLeft,
     Building2,
     CheckCircle2,
     CircleX,
     FileText,
     Lightbulb,
-    Printer,
-    RotateCcw,
     Sparkles,
     Target,
     WandSparkles,
@@ -21,18 +19,15 @@ import { ServerResumeAnalysis } from "@/utils/types";
 import ScoreCard from "@/components/analysis/ScoreCard";
 import AnalysisSection from "@/components/analysis/AnalysisSection";
 import ScoreGauge from "@/components/analysis/ScoreGauge";
+import Link from "next/link";
 
 interface ResumeAnalysisResultsProps {
     analysis: ServerResumeAnalysis;
     onReanalyze?: () => void;
 }
 
-export function ResumeAnalysisResults({analysis, onReanalyze,}: ResumeAnalysisResultsProps) {
+export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
     const [skillsTab, setSkillsTab] = useState<"matched" | "missing">("matched");
-
-    const handlePrint = () => {
-        window.print();
-    };
 
     // Safely extract scores & data arrays with fallbacks
     const atsScore = analysis.ATS?.score ?? 0;
@@ -65,47 +60,41 @@ export function ResumeAnalysisResults({analysis, onReanalyze,}: ResumeAnalysisRe
             <div className="flex flex-col gap-5 rounded-3xl border border-zinc-800/80 bg-zinc-950/90 p-6 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between print:rounded-none print:border-b print:p-0 print:pb-5">
 
                 <div className="space-y-2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[11px] font-medium text-amber-400">
-                        <Sparkles className="size-3" />
-                        AI Resume Analysis
-                    </span>
 
-                    <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl print:text-zinc-900">
-                        {analysis.jobTitle}
-                    </h1>
-
-                    {analysis.companyName && (
-                        <p className="flex items-center gap-1.5 text-xs text-zinc-400 print:text-zinc-600">
-                            <Building2 className="size-3.5" />
-
-                            Target Company:
-                            {" "}
-                            {analysis.companyName}
-                        </p>
-                    )}
-                </div>
-
-                <div className="flex items-center gap-2.5 no-print">
-
-                    <button
-                        type="button"
-                        onClick={handlePrint}
-                        className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-semibold text-amber-400 transition hover:bg-amber-500/20"
+                    <Link
+                        href="/resumes"
+                        className="group inline-flex items-center gap-2 text-xs font-medium text-zinc-400 transition-colors hover:text-amber-400"
                     >
-                        <Printer className="size-3.5" />
-                        Export PDF
-                    </button>
+                        <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+                        Back to resumes
+                    </Link>
 
-                    {onReanalyze && (
-                        <button
-                            type="button"
-                            onClick={onReanalyze}
-                            className="inline-flex items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-300 transition hover:bg-zinc-800 hover:text-white"
-                        >
-                            <RotateCcw className="size-3.5" />
-                            Re-analyze
-                        </button>
-                    )}
+                    {/* Analysis Header */}
+                    <div className="space-y-3">
+                        {/* Label */}
+                        <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
+                            <Sparkles className="size-3" />
+                            AI Resume Analysis
+                        </div>
+
+                        {/* Job title */}
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl print:text-zinc-900">
+                                {analysis.jobTitle}
+                            </h1>
+
+                            {/* Company */}
+                            {analysis.companyName && (
+                                <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400 print:text-zinc-600">
+                                    <Building2 className="size-3.5 text-zinc-500" />
+                                    <span>Company name:</span>
+                                    <span className="font-semibold text-amber-400 print:text-zinc-800">
+                                        {analysis.companyName}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1,88 +1,208 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { DashboardClient } from "@/components/dashboard/DashboardClient";
-import { getResumes } from "@/lib/api/resumes";
-import { getResumeAnalysis } from "@/lib/api/resumes";
-import { ServerResume, ServerResumeAnalysis } from "@/utils/types";
-import { Loader2 } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { AmbientBackground } from "@/components/dashboard/AmbientBackground";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { MetricsGrid } from "@/components/dashboard/MetricsGrid";
+import { AnalysisHistorySection } from "@/components/dashboard/AnalysisHistorySection";
+import { AnalysisAuditModal } from "@/components/dashboard/AnalysisAuditModal";
+import {
+    DashboardResumeLogs,
+    ResumeAuditLog
+} from "@/components/dashboard/DashboardResumeLogs";
+
+import { UploadResumeModal } from "@/components/resumes/UploadResumeModal";
+import { DeleteResumeModal } from "@/components/resumes/DeleteResumeModal";
+import { ReplaceResumeModal } from "@/components/resumes/ReplaceResumeModal";
+import { VersionHistoryModal } from "@/components/resumes/VersionHistoryModal";
+import { AnalyzeResumeModal } from "@/components/resumes/AnalyzeResumeModal";
+
+import {
+    getResumes,
+    deleteResume,
+    getResumeVersionById,
+    getResumeAnalysisById,
+} from "@/lib/api/resumes";
+
+import { Resume, ResumeVersion, ServerResume, ServerResumeAnalysis } from "@/utils/types";
+import { CheckCircle2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
-    const [resumes, setResumes] = useState<ServerResume[]>([]);
+    const router = useRouter();
+
+    const [resumes, setResumes] = useState<Resume[]>([]);
+    const [currentResumeVersions, setCurrentResumeVersions] = useState<Record<string, ResumeVersion>>({});
     const [analyses, setAnalyses] = useState<ServerResumeAnalysis[]>([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        async function loadDashboardData() {
-            try {
-                setLoading(true);
-                setError(null);
+    // Modals & Selection States
+    const [uploadOpen, setUploadOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<Resume | null>(null);
+    const [replaceResume, setReplaceResume] = useState<Resume | null>(null);
+    const [versionHistoryResume, setVersionHistoryResume] = useState<Resume | null>(null);
+    const [analyzeResume, setAnalyzeResume] = useState<Resume | null>(null);
+    const [selectedAudit, setSelectedAudit] = useState<ServerResumeAnalysis | null>(null);
 
-                // Step 1: Fetch all user resumes
-                const fetchedResumes: ServerResume[] = await getResumes();
-                setResumes(fetchedResumes);
+    const [toast, setToast] = useState<{ id: string; type: "success" | "error"; title: string; message?: string } | null>(null);
 
-                // Step 2: Extract resumeId from each resume and fetch its analysis concurrently
-                const analysisResults = await Promise.allSettled(
-                    fetchedResumes.map(async (resume) => {
-                        // Pass resume.id directly to your getResumeAnalysis function
-                        return await getResumeAnalysis(resume.id);
-                    })
-                );
+    const loadData = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
 
-                // Step 3: Filter out any failed requests and keep successful analyses
-                const successfulAnalyses: ServerResumeAnalysis[] = analysisResults
-                    .filter(
-                        (result): result is PromiseFulfilledResult<ServerResumeAnalysis> =>
-                            result.status === "fulfilled" && result.value !== null
-                    )
-                    .map((result) => result.value);
+            // 1. Fetch Resumes
+            const data: Resume[] = await getResumes();
+            setResumes(data);
 
-                setAnalyses(successfulAnalyses);
-            } catch (err) {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load dashboard data."
-                );
-            } finally {
-                setLoading(false);
-            }
+            // 2. Fetch Versions
+            const versions = await Promise.all(
+                data.map(async (resume) => {
+                    const version = await getResumeVersionById(resume.id, resume.currentVersionId);
+                    return { resumeId: resume.id, version };
+                })
+            );
+
+            const versionMap: Record<string, ResumeVersion> = {};
+            versions.forEach(({ resumeId, version }) => {
+                if (version) versionMap[resumeId] = version;
+            });
+            setCurrentResumeVersions(versionMap);
+
+            // 3. Fetch Analyses
+            const analysisList = await Promise.all(
+                Object.values(versionMap).map(async (version) => {
+                    if (!version.analysisId) return null;
+                    try {
+                        return await getResumeAnalysisById(version.resumeId, version.analysisId);
+                    } catch {
+                        return null;
+                    }
+                })
+            );
+
+            const validAnalyses = analysisList.filter(Boolean) as ServerResumeAnalysis[];
+            setAnalyses(validAnalyses);
+
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
+        } finally {
+            setLoading(false);
         }
-
-        loadDashboardData();
     }, []);
 
-    if (loading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-zinc-950 text-white">
-                <div className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/50 px-6 py-4">
-                    <Loader2 className="size-5 animate-spin text-amber-400" />
-                    <span className="text-xs font-semibold text-zinc-300">
-                        Loading your dashboard...
-                    </span>
-                </div>
-            </div>
-        );
-    }
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
-    if (error) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-zinc-950 text-white">
-                <div className="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-6 py-4 text-center">
-                    <p className="text-xs font-bold text-rose-400">{error}</p>
-                    <button
-                        type="button"
-                        onClick={() => window.location.reload()}
-                        className="mt-3 rounded-xl bg-rose-500 px-4 py-2 text-xs font-bold text-white hover:bg-rose-600"
-                    >
-                        Retry
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    // --- Transform state data to 2-in-a-row DashboardResumeLogs props ---
+    const resumeAuditLogs = useMemo<ResumeAuditLog[]>(() => {
+        return resumes.map((resume) => {
+            const currentVersion = currentResumeVersions[resume.id];
+            const matchingAnalysis = analyses.find((a) => a.resumeId === resume.id);
 
-    return <DashboardClient resumes={resumes} analyses={analyses} />;
+            // Status resolution logic
+            let status: ResumeAuditLog["status"] = "ready";
+            if (matchingAnalysis) {
+                if (matchingAnalysis.analysisStatus === "completed") status = "completed";
+                else if (matchingAnalysis.analysisStatus === "processing") status = "processing";
+                else if (matchingAnalysis.analysisStatus === "failed") status = "failed";
+            }
+
+            return {
+                id: resume.id,
+                fileName: resume.fileName,
+                uploadedAt: resume.createdAt
+                    ? new Date(resume.createdAt).toLocaleDateString()
+                    : "Recently",
+                status,
+                atsScore: matchingAnalysis?.ATS?.score,
+                matchPercentage: matchingAnalysis?.overallScore ?? undefined,
+                targetRole: matchingAnalysis?.jobTitle,
+                version: currentVersion ? currentVersion.versionNumber?.toString() || "1.0" : "1.0",
+            };
+        });
+    }, [resumes, currentResumeVersions, analyses]);
+
+    return (
+        <main className="relative min-h-screen bg-zinc-950 px-6 py-10 font-sans text-zinc-100 antialiased selection:bg-amber-400 selection:text-zinc-950">
+            <AmbientBackground />
+
+            {/* Global Toast Notification */}
+            {toast && (
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/95 px-4 py-3 text-xs font-semibold shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom-5">
+                    {toast.type === "success" ? (
+                        <CheckCircle2 className="size-4 text-emerald-400" />
+                    ) : (
+                        <AlertCircle className="size-4 text-rose-400" />
+                    )}
+                    <div>
+                        <p className="font-bold text-white">{toast.title}</p>
+                        {toast.message && <p className="text-[11px] font-medium text-zinc-400">{toast.message}</p>}
+                    </div>
+                </div>
+            )}
+
+            <div className="mx-auto max-w-6xl space-y-10">
+                {/* Header */}
+                <DashboardHeader
+                    onUploadOpen={() => setUploadOpen(true)}
+                    showUploadButton={resumes.length > 0}
+                />
+
+                {/* Aggregated KPI Metrics Grid */}
+                <MetricsGrid resumes={resumes as unknown as ServerResume[]} analyses={analyses} />
+
+                {/* --- 2-IN-A-ROW RESUME AUDIT LOGS SECTION --- */}
+                {loading ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="h-32 animate-pulse rounded-2xl bg-zinc-900/60 border border-zinc-800" />
+                        ))}
+                    </div>
+                ) : (
+                    <DashboardResumeLogs
+                        resumes={resumeAuditLogs}
+                        onSelectResume={(id) => {
+                            const matchingAnalysis = analyses.find((a) => a.resumeId === id);
+                            if (matchingAnalysis) {
+                                setSelectedAudit(matchingAnalysis);
+                            } else {
+                                const targetResume = resumes.find((r) => r.id === id);
+                                if (targetResume) setAnalyzeResume(targetResume);
+                            }
+                        }}
+                        onViewAll={() => router.push("/resumes")}
+                    />
+                )}
+
+                {/* Audit Logs History Table */}
+                <AnalysisHistorySection
+                    analyses={analyses}
+                    onSelectAnalysis={(a) => setSelectedAudit(a)}
+                />
+            </div>
+
+            {/* Modals */}
+            <UploadResumeModal open={uploadOpen} onClose={() => setUploadOpen(false)} onUploaded={loadData} />
+            {/*<DeleteResumeModal*/}
+            {/*    resume={deleteTarget}*/}
+            {/*    open={deleteTarget !== null}*/}
+            {/*    onClose={() => setDeleteTarget(null)}*/}
+            {/*    onConfirm={async () => {*/}
+            {/*        if (deleteTarget) {*/}
+            {/*            await deleteResume(deleteTarget.id);*/}
+            {/*            setDeleteTarget(null);*/}
+            {/*            loadData();*/}
+            {/*        }*/}
+            {/*    }}*/}
+            {/*/>*/}
+            <ReplaceResumeModal open={replaceResume !== null} resume={replaceResume} onClose={() => setReplaceResume(null)} onReplaced={loadData} />
+            <VersionHistoryModal open={versionHistoryResume !== null} resume={versionHistoryResume} onClose={() => setVersionHistoryResume(null)} />
+            <AnalyzeResumeModal open={analyzeResume !== null} resume={analyzeResume} onClose={() => setAnalyzeResume(null)} onAnalyze={loadData} />
+            <AnalysisAuditModal analysis={selectedAudit} onClose={() => setSelectedAudit(null)} />
+        </main>
+    );
 }

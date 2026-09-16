@@ -18,11 +18,11 @@ import {
 import {
     CheckCircle2,
     AlertCircle,
-    FileText,
+    FileText, X,
     Plus,
     Search,
     Sparkles,
-    UploadCloud,
+    UploadCloud, Menu, ArrowLeft,
 } from "lucide-react";
 
 import {
@@ -39,6 +39,7 @@ import { AnalyzeResumeModal } from "@/components/resumes/AnalyzeResumeModal";
 
 import { useRouter } from "next/navigation";
 import { signOutUser } from "@/lib/firebase/auth";
+import Link from "next/link";
 
 interface ToastNotification {
     id: string;
@@ -62,7 +63,6 @@ export function ResumesPage() {
     const [toast, setToast] = useState<ToastNotification | null>(null);
     const [analyzeResume, setAnalyzeResume] = useState<Resume | null>(null);
     const [companyNames, setCompanyNames] = useState<Record<string, string | null>>({});
-    const router = useRouter();
 
     function showToast(
         type: "success" | "error",
@@ -279,10 +279,7 @@ export function ResumesPage() {
                     .includes(query),
         );
 
-    }, [
-        resumes,
-        searchQuery,
-    ]);
+    }, [resumes, searchQuery]);
 
     return (
         <main className="relative min-h-screen overflow-hidden bg-zinc-950 px-6 py-10 font-sans text-zinc-100 antialiased selection:bg-amber-400 selection:text-zinc-950">
@@ -321,14 +318,27 @@ export function ResumesPage() {
             <div className="mx-auto max-w-6xl">
 
                 {/* Header */}
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
 
-                    <div>
+                <div className=''>
+                    <Link
+                        href="/dashboard"
+                        className="group inline-flex items-center gap-2 text-xs font-medium text-zinc-400 transition-colors hover:text-amber-400"
+                    >
+                        <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+                        Back to dashboard
+                    </Link>
+
+                    <div className='flex items-center justify-between w-full'>
                         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3.5 py-1 text-xs font-semibold text-amber-400">
                             <Sparkles className="size-3.5" />
                             Resume workspace
                         </div>
+                    </div>
+                </div>
 
+                {/*Sub Header*/}
+                <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
                         <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-4xl">
                             My Resumes
                         </h1>
