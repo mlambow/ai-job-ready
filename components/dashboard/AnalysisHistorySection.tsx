@@ -65,9 +65,11 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisH
                 </div>
             </div>
 
-            <div className="rounded-[2.5rem] border border-zinc-800/80 bg-zinc-900/60 shadow-2xl backdrop-blur-xl overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs text-zinc-300">
+            <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/60 shadow-2xl backdrop-blur-xl overflow-hidden">
+                {/* Enabled horizontal auto-scrolling container */}
+                <div className="w-full overflow-x-auto">
+                    {/* Added min-w-[800px] to preserve structure on mobile views */}
+                    <table className="w-full min-w-[800px] text-left text-xs text-zinc-300">
                         <thead className="border-b border-zinc-800 bg-zinc-950/50 text-[11px] font-bold uppercase tracking-wider text-zinc-400">
                         <tr>
                             <th className="px-6 py-4">Target Role / Company</th>
@@ -100,34 +102,34 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisH
                                             <div className="text-[11px] text-zinc-400">{item.companyName || "Unspecified Target"}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                        <span className={`font-bold ${overall >= 80 ? "text-amber-400" : overall >= 60 ? "text-yellow-400" : "text-rose-400"}`}>
-                          {overall}%
-                        </span>
+                                            <span className={`font-bold ${overall >= 80 ? "text-amber-400" : overall >= 60 ? "text-yellow-400" : "text-rose-400"}`}>
+                                              {overall}%
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 font-mono">{atsScore}%</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5 text-[11px]">
-                          <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                            {matchedCount} matched
-                          </span>
-                                                <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full">
-                            {missingCount} missing
-                          </span>
+                                                  <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                    {matchedCount} matched
+                                                  </span>
+                                                <span className="bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full whitespace-nowrap">
+                                                {missingCount} missing
+                                              </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-                            item.analysisStatus === "completed"
-                                ? "bg-amber-400/10 text-amber-400 border-amber-400/20"
-                                : item.analysisStatus === "processing"
-                                    ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                                    : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                        }`}>
-                          {item.analysisStatus === "completed" ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
-                            {item.analysisStatus}
-                        </span>
+                                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border whitespace-nowrap ${
+                                                item.analysisStatus === "completed"
+                                                    ? "bg-amber-400/10 text-amber-400 border-amber-400/20"
+                                                    : item.analysisStatus === "processing"
+                                                        ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
+                                                        : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                            }`}>
+                                              {item.analysisStatus === "completed" ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
+                                                {item.analysisStatus}
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-4 text-zinc-400">
+                                        <td className="px-6 py-4 text-zinc-400 whitespace-nowrap">
                                             {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "N/A"}
                                         </td>
                                         <td className="px-6 py-4 text-right">

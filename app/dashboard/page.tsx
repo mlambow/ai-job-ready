@@ -156,27 +156,20 @@ export default function DashboardPage() {
                 <MetricsGrid resumes={resumes as unknown as ServerResume[]} analyses={analyses} />
 
                 {/* --- 2-IN-A-ROW RESUME AUDIT LOGS SECTION --- */}
-                {loading ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-32 animate-pulse rounded-2xl bg-zinc-900/60 border border-zinc-800" />
-                        ))}
-                    </div>
-                ) : (
-                    <DashboardResumeLogs
-                        resumes={resumeAuditLogs}
-                        onSelectResume={(id) => {
-                            const matchingAnalysis = analyses.find((a) => a.resumeId === id);
-                            if (matchingAnalysis) {
-                                setSelectedAudit(matchingAnalysis);
-                            } else {
-                                const targetResume = resumes.find((r) => r.id === id);
-                                if (targetResume) setAnalyzeResume(targetResume);
-                            }
-                        }}
-                        onViewAll={() => router.push("/resumes")}
-                    />
-                )}
+
+                <DashboardResumeLogs
+                    resumes={resumeAuditLogs}
+                    onSelectResume={(id) => {
+                        const matchingAnalysis = analyses.find((a) => a.resumeId === id);
+                        if (matchingAnalysis) {
+                            setSelectedAudit(matchingAnalysis);
+                        } else {
+                            const targetResume = resumes.find((r) => r.id === id);
+                            if (targetResume) setAnalyzeResume(targetResume);
+                        }
+                    }}
+                    onViewAll={() => router.push("/resumes")}
+                />
 
                 {/* Audit Logs History Table */}
                 <AnalysisHistorySection
