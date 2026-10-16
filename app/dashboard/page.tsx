@@ -40,7 +40,6 @@ export default function DashboardPage() {
 
     // Modals & Selection States
     const [uploadOpen, setUploadOpen] = useState(false);
-    const [deleteTarget, setDeleteTarget] = useState<Resume | null>(null);
     const [replaceResume, setReplaceResume] = useState<Resume | null>(null);
     const [versionHistoryResume, setVersionHistoryResume] = useState<Resume | null>(null);
     const [analyzeResume, setAnalyzeResume] = useState<Resume | null>(null);
@@ -94,7 +93,7 @@ export default function DashboardPage() {
     }, []);
 
     useEffect(() => {
-        loadData();
+        void loadData();
     }, [loadData]);
 
     // --- Transform state data to 2-in-a-row DashboardResumeLogs props ---
@@ -180,18 +179,7 @@ export default function DashboardPage() {
 
             {/* Modals */}
             <UploadResumeModal open={uploadOpen} onClose={() => setUploadOpen(false)} onUploaded={loadData} />
-            {/*<DeleteResumeModal*/}
-            {/*    resume={deleteTarget}*/}
-            {/*    open={deleteTarget !== null}*/}
-            {/*    onClose={() => setDeleteTarget(null)}*/}
-            {/*    onConfirm={async () => {*/}
-            {/*        if (deleteTarget) {*/}
-            {/*            await deleteResume(deleteTarget.id);*/}
-            {/*            setDeleteTarget(null);*/}
-            {/*            loadData();*/}
-            {/*        }*/}
-            {/*    }}*/}
-            {/*/>*/}
+
             <ReplaceResumeModal open={replaceResume !== null} resume={replaceResume} onClose={() => setReplaceResume(null)} onReplaced={loadData} />
             <VersionHistoryModal open={versionHistoryResume !== null} resume={versionHistoryResume} onClose={() => setVersionHistoryResume(null)} />
             <AnalyzeResumeModal open={analyzeResume !== null} resume={analyzeResume} onClose={() => setAnalyzeResume(null)} onAnalyze={loadData} />

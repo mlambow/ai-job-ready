@@ -12,10 +12,10 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
     try {
         //Authenticate the user
         const decodedToken = await verifyFirebaseToken(request);
-        const userId = decodedToken.uid;
+        userId = decodedToken.uid;
 
         //Get the resume
-        const {resumeId} = await params
+        resumeId = (await params).resumeId;
 
         const resume = await getResumeById(userId, resumeId,);
 
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
         }
 
         //Create analysis document
-        const analysisId = await createAnalysisDocument(
+        analysisId = await createAnalysisDocument(
             userId, resumeId, {versionId, jobTitle, jobDescription, companyName},
         )
 
@@ -100,20 +100,22 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
     } catch (error) {
         console.error("Resume analysis error:", error);
 
-        try {
-            if (userId && resumeId && analysisId) {
+        if (userId && resumeId && analysisId) {
+            try {
                 await failAnalysis(userId, resumeId, analysisId);
+            } catch (failureError) {
+                console.error("Failed to mark analysis as failed:", failureError);
             }
-        } catch (error) {
-            return NextResponse.json(
-                {
-                    error:
-                        error instanceof Error
-                            ? error.message
-                            : "Failed to analyze resume.",
-                },
-                {status: 500},
-            );
         }
+
+        return NextResponse.json(
+            {
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Failed to analyze resume.",
+            },
+            { status: 500 },
+        );
     }
 }
