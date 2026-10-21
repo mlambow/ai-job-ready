@@ -7,7 +7,8 @@ const nextConfig: NextConfig = {
         fetches: {
             fullUrl: true
         }
-    }
+    },
+    serverExternalPackages: ["pdf-parse-new"],
 };
 
 export default nextConfig;
