@@ -1,6 +1,6 @@
 import {NextResponse, NextRequest} from "next/server";
 import{verifyFirebaseToken} from '@/lib/firebase/verify-token'
-import {adminDb} from "@/lib/firebase/admin";
+//import {adminDb} from "@/lib/firebase/admin";
 
 export async function DELETE (request: NextRequest) {
     try {
@@ -13,9 +13,9 @@ export async function DELETE (request: NextRequest) {
             )
         }
 
-        const userRef = adminDb
-            .collection("users")
-            .doc(userId)
+        // const userRef = adminDb
+        //     .collection("users")
+        //     .doc(userId)
 
 
     } catch (error) {

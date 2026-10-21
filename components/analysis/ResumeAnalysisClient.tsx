@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import {AlertCircle, Loader2} from "lucide-react";
 
 import { ServerResumeAnalysis } from "@/utils/types";
-import { getResumeAnalysisById } from "@/lib/api/resumes";
 import { ResumeAnalysisResults } from "@/components/analysis/ResumeAnalysisResults";
+import { fetchAnalysisById } from "@/lib/api/analyses";
 
 interface AnalysisPageProps {
     params: Promise<{
@@ -28,33 +28,44 @@ export default function ResumeAnalysisClient({
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+
     useEffect(() => {
+        let cancelled = false;
+
         async function loadAnalysis() {
             try {
-                setLoading(true);
-                setError(null);
-
-                const data = await getResumeAnalysisById(
+                const data = await fetchAnalysisById(
                     resumeId,
-                    analysisId,
+                    analysisId
                 );
 
-                setAnalysis(data);
+                if (!cancelled) {
+                    setAnalysis(data);
+                }
             } catch (err) {
-                setError(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to load analysis results.",
-                );
+                if (!cancelled) {
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : "Failed to load analysis results."
+                    );
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         }
 
         if (resumeId && analysisId) {
-            loadAnalysis();
+            void loadAnalysis();
         }
+
+        return () => {
+            cancelled = true;
+        };
     }, [resumeId, analysisId]);
+
 
     if (loading) {
         return (

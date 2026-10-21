@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Sparkles, X, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { ServerResumeAnalysis } from "@/utils/types";
 
 interface AnalysisAuditModalProps {
@@ -52,7 +52,7 @@ export function AnalysisAuditModal({ analysis, onClose }: AnalysisAuditModalProp
                             <Sparkles className="size-4" /> Recommended Executive Summary
                         </h4>
                         <p className="text-xs leading-relaxed text-zinc-300 italic">
-                            "{analysis.aiSuggestions.improvedSummary}"
+                            &quot;{analysis.aiSuggestions.improvedSummary}&quot;
                         </p>
                     </div>
                 )}

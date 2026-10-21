@@ -42,7 +42,7 @@ export default function HowItWorks() {
                         </h2>
 
                         <p className="mt-5 max-w-lg text-sm leading-relaxed text-zinc-400">
-                            Provide your resume alongside the target job description. We'll
+                            Provide your resume alongside the target job description. We&apos;ll
                             analyze both and output clear, step-by-step improvements.
                         </p>
 

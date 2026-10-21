@@ -108,7 +108,7 @@ export const DashboardResumeLogs: React.FC<DashboardResumeLogsProps> = ({
                     </div>
                     <h4 className="text-sm font-semibold text-zinc-200">No resumes found</h4>
                     <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-                        You haven't uploaded any resumes yet. Upload a resume to get ATS evaluation scores and job matching insights.
+                        You haven&apos;t uploaded any resumes yet. Upload a resume to get ATS evaluation scores and job matching insights.
                     </p>
                     {onUpload && (
                         <button

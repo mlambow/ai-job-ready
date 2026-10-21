@@ -35,7 +35,7 @@ export default function Features() {
                 </h2>
 
                 <p className="mt-4 text-base leading-relaxed text-zinc-400">
-                    Stop guessing why your applications aren't getting responses. Get
+                    Stop guessing why your applications aren&apos;t getting responses. Get
                     practical feedback tailored to the target role.
                 </p>
             </div>

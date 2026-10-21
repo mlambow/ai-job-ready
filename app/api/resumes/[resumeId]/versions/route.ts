@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { adminAuth } from "@/lib/firebase/admin";
 import {getResumeById, createResumeVersion, getResumeVersions} from "@/lib/firebase/admin-resumes";
-import {uploadResume, deleteResumeFile} from "@/lib/appwrite/storage";
+import {uploadResume} from "@/lib/appwrite/storage";
 import {verifyFirebaseToken} from "@/lib/firebase/verify-token";
 
 export async function POST(request: NextRequest,
     {params}: { params: Promise<{ resumeId: string; }>; },
 ) {
-    let uploadedFileId: string | null = null;
 
     try {
         // 2. Verify Firebase user
@@ -77,8 +75,6 @@ export async function POST(request: NextRequest,
 
         const uploadedFile = await uploadResume(file);
 
-        uploadedFileId = uploadedFile.fileId;
-
         // 8. Create new version
 
         const version =
@@ -110,16 +106,7 @@ export async function POST(request: NextRequest,
         // Cleanup Appwrite file if
         // Firestore operation failed
 
-        if (uploadedFileId) {
-            try {
-                await deleteResumeFile(uploadedFileId);
-            } catch (cleanupError) {
-                console.error(
-                    "Failed to clean up uploaded file:",
-                    cleanupError,
-                );
-            }
-        }
+
 
         return NextResponse.json(
             {

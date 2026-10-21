@@ -1,20 +1,14 @@
-
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 
 import { AnalysisHistorySection } from "@/components/dashboard/AnalysisHistorySection";
 import { AnalysisAuditModal } from "@/components/dashboard/AnalysisAuditModal";
+import { fetchAnalyses } from "@/lib/api/analyses";
 
-import {
-    getResumes,
-    getResumeVersionById,
-    getResumeAnalysisById,
-} from "@/lib/api/resumes";
-
-import type { Resume, ResumeVersion, ServerResumeAnalysis } from "@/utils/types";
+import type { ServerResumeAnalysis } from "@/utils/types";
 
 export default function AnalysisPage() {
     const [analyses, setAnalyses] = useState<ServerResumeAnalysis[]>([]);
@@ -23,71 +17,46 @@ export default function AnalysisPage() {
     const [selectedAnalysis, setSelectedAnalysis] =
         useState<ServerResumeAnalysis | null>(null);
 
-    const loadAnalyses = useCallback(async () => {
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadAnalyses() {
+            try {
+                const results = await fetchAnalyses();
+
+                if (!cancelled) {
+                    setAnalyses(results);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setError(
+                        err instanceof Error
+                            ? err.message
+                            : "Failed to load your analysis history."
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        void loadAnalyses();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const handleRefresh = async () => {
+        setLoading(true);
+        setError(null);
+
         try {
-            setLoading(true);
-            setError(null);
-
-            // 1. Load the user's resumes.
-            const resumes: Resume[] = await getResumes();
-
-            // 2. Load every resume's versions.
-            const versionResults = await Promise.all(
-                resumes.map(async (resume) => {
-                    try {
-                        const version: ResumeVersion | null =
-                            await getResumeVersionById(
-                                resume.id,
-                                resume.currentVersionId
-                            );
-
-                        return version;
-                    } catch (error) {
-                        console.error(
-                            `Failed to load version for resume ${resume.id}:`,
-                            error
-                        );
-                        return null;
-                    }
-                })
-            );
-
-            // 3. Load analyses associated with those versions.
-            const analysisResults = await Promise.all(
-                versionResults.map(async (version) => {
-                    if (!version?.analysisId || !version.resumeId) {
-                        return null;
-                    }
-
-                    try {
-                        return await getResumeAnalysisById(
-                            version.resumeId,
-                            version.analysisId
-                        );
-                    } catch (error) {
-                        console.error(
-                            `Failed to load analysis ${version.analysisId}:`,
-                            error
-                        );
-                        return null;
-                    }
-                })
-            );
-
-            const validAnalyses = analysisResults.filter(
-                (analysis): analysis is ServerResumeAnalysis =>
-                    analysis !== null
-            );
-
-            // Show newest analyses first when a creation date is available.
-            validAnalyses.sort((a, b) => {
-                const dateA = new Date(a.createdAt ?? 0).getTime();
-                const dateB = new Date(b.createdAt ?? 0).getTime();
-
-                return dateB - dateA;
-            });
-
-            setAnalyses(validAnalyses);
+            const results = await fetchAnalyses();
+            setAnalyses(results);
         } catch (err) {
             setError(
                 err instanceof Error
@@ -97,11 +66,8 @@ export default function AnalysisPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    };
 
-    useEffect(() => {
-        void loadAnalyses();
-    }, [loadAnalyses]);
 
     return (
         <main className="min-h-screen bg-zinc-950 px-4 py-8 text-zinc-100 sm:px-6 lg:px-8">
@@ -129,7 +95,7 @@ export default function AnalysisPage() {
 
                     <button
                         type="button"
-                        onClick={() => void loadAnalyses()}
+                        onClick={() => void handleRefresh()}
                         disabled={loading}
                         className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-700 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
@@ -166,7 +132,7 @@ export default function AnalysisPage() {
 
                         <button
                             type="button"
-                            onClick={() => void loadAnalyses()}
+                            onClick={() => void handleRefresh()}
                             className="rounded-lg bg-rose-500/10 px-4 py-2 text-sm font-medium text-rose-300 hover:bg-rose-500/20"
                         >
                             Try again
@@ -188,9 +154,8 @@ export default function AnalysisPage() {
                             </div>
 
                             <span className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm text-zinc-300">
-                {analyses.length}{" "}
-                                {analyses.length === 1 ? "analysis" : "analyses"}
-              </span>
+                            {analyses.length}{" "}{analyses.length === 1 ? "analysis" : "analyses"}
+                          </span>
                         </div>
 
                         {analyses.length > 0 ? (

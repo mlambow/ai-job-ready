@@ -18,15 +18,15 @@ import {
 import {
     CheckCircle2,
     AlertCircle,
-    FileText, X,
+    FileText,
     Plus,
     Search,
     Sparkles,
-    UploadCloud, Menu, ArrowLeft,
+    UploadCloud, ArrowLeft,
 } from "lucide-react";
 
 import {
-    Resume, ResumeAnalysis,
+    Resume,
     ResumeVersion,
 } from "@/utils/types";
 
@@ -37,8 +37,6 @@ import { ReplaceResumeModal } from "@/components/resumes/ReplaceResumeModal";
 import { VersionHistoryModal } from "@/components/resumes/VersionHistoryModal";
 import { AnalyzeResumeModal } from "@/components/resumes/AnalyzeResumeModal";
 
-import { useRouter } from "next/navigation";
-import { signOutUser } from "@/lib/firebase/auth";
 import Link from "next/link";
 
 interface ToastNotification {
@@ -64,23 +62,85 @@ export function ResumesPage() {
     const [analyzeResume, setAnalyzeResume] = useState<Resume | null>(null);
     const [companyNames, setCompanyNames] = useState<Record<string, string | null>>({});
 
-    function showToast(
-        type: "success" | "error",
-        title: string,
-        message?: string,
-    ) {
-        const id = Math.random().toString();
 
-        setToast({
-            id,
-            type,
-            title,
-            message,
+    const showToast = useCallback(
+        (
+            type: "success" | "error",
+            title: string,
+            message?: string,
+        ) => {
+            const id = Math.random().toString();
+
+            setToast({
+                id,
+                type,
+                title,
+                message,
+            });
+
+            setTimeout(() => {
+                setToast(null);
+            }, 4000);
+        },
+        [],
+    );
+
+
+
+    async function fetchResumePageData() {
+        const data: Resume[] = await getResumes();
+
+        const versions = await Promise.all(
+            data.map(async (resume) => {
+                const version = await getResumeVersionById(
+                    resume.id,
+                    resume.currentVersionId,
+                );
+
+                return {
+                    resumeId: resume.id,
+                    version,
+                };
+            }),
+        );
+
+        const versionMap: Record<string, ResumeVersion> = {};
+
+        versions.forEach(({ resumeId, version }) => {
+            if (version) {
+                versionMap[resumeId] = version;
+            }
         });
 
-        setTimeout(() => {
-            setToast(null);
-        }, 4000);
+        const analyses = await Promise.all(
+            Object.values(versionMap).map(async (version) => {
+                if (!version.analysisId) return null;
+
+                try {
+                    return await getResumeAnalysisById(
+                        version.resumeId,
+                        version.analysisId,
+                    );
+                } catch (error) {
+                    console.error("Unable to load resume analysis:", error);
+                    return null;
+                }
+            }),
+        );
+
+        const companyNameMap: Record<string, string | null> = {};
+
+        analyses.forEach((analysis) => {
+            if (analysis) {
+                companyNameMap[analysis.resumeId] = analysis.companyName;
+            }
+        });
+
+        return {
+            resumes: data,
+            versionMap,
+            companyNameMap,
+        };
     }
 
     async function loadResumes() {
@@ -88,71 +148,11 @@ export function ResumesPage() {
             setLoading(true);
             setError(null);
 
-            // 1. Get all parent resumes
-            const data: Resume[] = await getResumes();
+            const data = await fetchResumePageData();
 
-            setResumes(data);
-
-            // 2. Get the current version for each resume
-            const versions = await Promise.all(
-                data.map(async (resume) => {
-                    const version = await getResumeVersionById(resume.id, resume.currentVersionId,);
-
-                    return {
-                        resumeId: resume.id,
-                        version,
-                    };
-                }),
-            );
-
-            // 3. Create a map:
-            // resumeId -> current ResumeVersion
-            const versionMap: Record<string, ResumeVersion> = {};
-
-            versions.forEach(
-                ({ resumeId, version }) => {
-                    if (version) {
-                        versionMap[resumeId] = version;
-                    }
-                },
-            );
-
-            // 4. Store all current versions
-            setCurrentResumeVersions(versionMap);
-
-            // 5. Fetch analyses for versions that have an analysisId
-            const analyses = await Promise.all(
-                Object.values(versionMap).map(async (version) => {
-                    // Check if your ResumeVersion object stores analysisId
-                    if (!version.analysisId) return null;
-
-                    try {
-                        return await getResumeAnalysisById(
-                            version.resumeId,
-                            version.analysisId,
-                        );
-                    } catch (error) {
-                        setError(
-                            error instanceof Error
-                                ? error.message
-                                : "Unable to load resume version.",
-                        );
-                    }
-                }),
-            );
-
-            // 5. Create company name map: resumeId -> companyName
-            const companyNameMap: Record<string, string | null> = {};
-
-            analyses.forEach((analysis) => {
-                if (analysis) {
-                    companyNameMap[analysis.resumeId] = analysis.companyName;
-                }
-            });
-
-            // Store company names in state
-            setCompanyNames(companyNameMap);
-
+            setResumes(data.resumes);
+            setCurrentResumeVersions(data.versionMap);
+            setCompanyNames(data.companyNameMap);
         } catch (err) {
             setError(
                 err instanceof Error
@@ -163,6 +163,7 @@ export function ResumesPage() {
             setLoading(false);
         }
     }
+
 
     async function handleDeleteResume() {
         if (!deleteTarget) {
@@ -216,10 +217,6 @@ export function ResumesPage() {
         }
     }
 
-    useEffect(() => {
-        loadResumes();
-    }, []);
-
     const handleResumeView = useCallback(async (resume: { id: string }) => {
         try {
             const blob = await viewResume(resume.id);
@@ -237,7 +234,7 @@ export function ResumesPage() {
                 err instanceof Error ? err.message : undefined
             );
         }
-    }, [viewResume, showToast]);
+    }, [showToast]);
 
     const handleResumeDownload = useCallback(async (resume: { id: string; fileName: string; }) => {
         try {
@@ -260,7 +257,7 @@ export function ResumesPage() {
                 err instanceof Error ? err.message : undefined
             );
         }
-    }, [downloadResume, showToast]);
+    }, [showToast]);
 
     const filteredResumes = useMemo(() => {
         const query =
@@ -280,6 +277,43 @@ export function ResumesPage() {
         );
 
     }, [resumes, searchQuery]);
+
+
+    useEffect(() => {
+        let cancelled = false;
+
+        async function initializeResumes() {
+            try {
+                const data = await fetchResumePageData();
+
+                if (cancelled) return;
+
+                setResumes(data.resumes);
+                setCurrentResumeVersions(data.versionMap);
+                setCompanyNames(data.companyNameMap);
+                setError(null);
+            } catch (err) {
+                if (cancelled) return;
+
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : "Unable to load resumes.",
+                );
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        void initializeResumes();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
 
     return (
         <main className="relative min-h-screen overflow-hidden bg-zinc-950 px-6 py-10 font-sans text-zinc-100 antialiased selection:bg-amber-400 selection:text-zinc-950">
@@ -485,7 +519,7 @@ export function ResumesPage() {
                     <UploadResumeModal
                         open={uploadOpen}
                         onClose={() => setUploadOpen(false)}
-                        onUploaded={() => {loadResumes();
+                        onUploaded={() => {void loadResumes();
                             showToast(
                                 "success",
                                 "Resume uploaded",
@@ -513,7 +547,7 @@ export function ResumesPage() {
                         open={replaceResume !== null}
                         resume={replaceResume}
                         onClose={() => setReplaceResume(null)}
-                        onReplaced={() => {loadResumes();
+                        onReplaced={() => {void loadResumes();
                             showToast(
                                 "success",
                                 "Resume replaced",
@@ -535,11 +569,8 @@ export function ResumesPage() {
                         resume={analyzeResume}
                         onClose={() => setAnalyzeResume(null)}
                         onAnalyze={() => {setAnalyzeResume(null);
-
                             // Refresh the current version
-                            // so analysisStatus updates
-                            loadResumes();
-
+                            void loadResumes();
                             showToast(
                                 "success",
                                 "Resume analyzed",

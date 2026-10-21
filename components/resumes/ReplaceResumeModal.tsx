@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import { createPortal } from "react-dom";
 import {
     AlertCircle,
@@ -12,6 +17,7 @@ import {
 } from "lucide-react";
 import {processResume, replaceResume} from "@/lib/api/resumes";
 import { Resume } from "@/utils/types";
+import { useMounted } from "@/utils/hooks/useMounted";
 
 interface ReplaceResumeModalProps {
     open: boolean;
@@ -37,12 +43,25 @@ export function ReplaceResumeModal({
     const [file, setFile] = useState<File | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
-    const [mounted, setMounted] = useState(false);
 
-    // Avoid hydration mismatches with React Portal
-    useEffect(() => {
-        setMounted(true);
+    const mounted = useMounted();
+
+    const resetState = useCallback(() => {
+        setFile(null);
+        setError(null);
+        setUploading(false);
+
+        if (inputRef.current) {
+            inputRef.current.value = "";
+        }
     }, []);
+
+    const handleClose = useCallback(() => {
+        if (uploading) return;
+
+        resetState();
+        onClose();
+    }, [uploading, resetState, onClose]);
 
     // Lock body scroll when modal is active
     useEffect(() => {
@@ -56,38 +75,22 @@ export function ReplaceResumeModal({
         };
     }, [open]);
 
-    // Handle Escape keypress
     useEffect(() => {
         function handleKeyDown(e: KeyboardEvent) {
             if (e.key === "Escape" && open && !uploading) {
                 handleClose();
             }
         }
+
         window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [open, uploading]);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [open, uploading, handleClose]);
 
     if (!mounted || !open || !resume) {
         return null;
-    }
-
-    function resetState() {
-        setFile(null);
-        setError(null);
-        setUploading(false);
-
-        if (inputRef.current) {
-            inputRef.current.value = "";
-        }
-    }
-
-    function handleClose() {
-        if (uploading) {
-            return;
-        }
-
-        resetState();
-        onClose();
     }
 
     function handleFileChange(selectedFile: File | undefined) {

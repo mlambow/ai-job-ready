@@ -14,6 +14,7 @@ import {
 import { getResumeVersions, viewResumeVersion, downloadResumeVersion } from "@/lib/api/resumes";
 import { Resume, ResumeVersion } from "@/utils/types";
 import Link from "next/link";
+import {useMounted} from "@/utils/hooks/useMounted";
 
 interface VersionHistoryModalProps {
     open: boolean;
@@ -59,10 +60,10 @@ export function VersionHistoryModal({open, resume, onClose}: VersionHistoryModal
     const [versions, setVersions] = useState<ResumeVersion[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [mounted, setMounted] = useState(false);
     const [viewingVersionId, setViewingVersionId] = useState<string | null>(null);
     const [downloadingVersionId, setDownloadingVersionId] = useState<string | null>(null);
     const [actionError, setActionError] = useState<string | null>(null);
+    const mounted = useMounted();
 
     async function handleViewVersion(version: ResumeVersion) {
         if (!resume) return;
@@ -141,11 +142,6 @@ export function VersionHistoryModal({open, resume, onClose}: VersionHistoryModal
             setDownloadingVersionId(null);
         }
     }
-
-    // Avoid hydration mismatch when using React Portals in Next.js
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     // Lock body scroll when modal is active
     useEffect(() => {

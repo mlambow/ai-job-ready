@@ -2,7 +2,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/firebase/admin";
 import {CompleteResumeAnalysisData, ServerResumeAnalysis} from "@/utils/types";
 import {cacheLife, cacheTag, revalidateTag} from "next/cache";
-import {resumeAnalysisByIdTag, resumeAnalysisTag, resumeListTag} from "@/lib/cache/resumeCache";
+import {resumeAnalysisByIdTag, resumeAnalysisTag} from "@/lib/cache/resumeCache";
 
 export async function getResumeAnalysisById(
     userId: string,
