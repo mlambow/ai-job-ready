@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {Search, Briefcase, CheckCircle2, Clock, Eye} from "lucide-react";
+import {Search, Briefcase, CheckCircle2, Clock, Eye, AlertTriangle, ChevronRight} from "lucide-react";
 import { ServerResumeAnalysis } from "@/utils/types";
 import Link from "next/link";
 
 interface AnalysisHistorySectionProps {
     analyses: ServerResumeAnalysis[];
     onSelectAnalysis: (analysis: ServerResumeAnalysis) => void;
+    showHeader?: boolean;
 }
 
-export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisHistorySectionProps) {
+export function AnalysisHistorySection({ analyses, onSelectAnalysis, showHeader = false }: AnalysisHistorySectionProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -26,43 +27,58 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisH
         });
     }, [analyses, searchTerm, statusFilter]);
 
+    const hasAnalyses = analyses && analyses.length > 0;
+
     return (
         <div className="space-y-4 mt-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                        <Briefcase className="size-5 text-amber-400" />
-                        Analysis Audit History Logs
-                    </h2>
-                    <p className="text-xs text-zinc-400 mt-0.5">
-                        Review detailed ATS scores and keyword alignment across previous runs.
-                    </p>
+            {showHeader && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                            <Briefcase className="size-5 text-amber-400"/>
+                            Analysis Audit History Logs
+                        </h2>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                            Review detailed ATS scores and keyword alignment across previous runs.
+                        </p>
+                    </div>
+
+                    {hasAnalyses && (
+                        <Link
+                            href="/analyses"
+                            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-400 transition-colors hover:text-amber-300"
+                        >
+                            View All Analyses
+                            <ChevronRight className="w-3.5 h-3.5"/>
+                        </Link>
+                    )}
+                </div>
+            )}
+
+
+            <div className="w-full flex items-center gap-3">
+                <div className="relative w-full">
+                    <Search className="absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-amber-400/50" />
+                    <input
+                        type="search"
+                        placeholder="Filter by title or company..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 py-2 pl-10 pr-4 text-xs text-white outline-none transition placeholder:text-zinc-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 backdrop-blur-md sm:text-sm"
+                    />
                 </div>
 
-                <div className="flex items-center gap-3">
-                    <div className="relative sm:w-full md:max-w-md">
-                        <Search className="absolute left-3.5 top-1/2 z-10 size-4 -translate-y-1/2 text-amber-400/50" />
-                        <input
-                            type="search"
-                            placeholder="Filter by title or company..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full rounded-2xl border border-zinc-800 bg-zinc-900/80 py-2 pl-10 pr-4 text-xs text-white outline-none transition placeholder:text-zinc-500 focus:border-amber-400/50 focus:ring-2 focus:ring-amber-400/20 backdrop-blur-md sm:text-sm"
-                        />
-                    </div>
-
-                    <div className="relative inline-flex items-center">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="appearance-none rounded-xl border border-zinc-800 bg-zinc-900/80 pl-3.5 pr-8 py-2 px-4 text-center text-xs font-medium text-zinc-300 outline-none transition-colors hover:border-zinc-700 focus:border-amber-400/50 cursor-pointer"
-                        >
-                            <option value="ALL">All Statuses</option>
-                            <option value="COMPLETED">Completed</option>
-                            <option value="PENDING">Pending</option>
-                            <option value="FAILED">Failed</option>
-                        </select>
-                    </div>
+                <div className="relative inline-flex items-center">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="appearance-none rounded-xl border border-zinc-800 bg-zinc-900/80 pl-3.5 pr-8 py-2 px-4 text-center text-xs font-medium text-zinc-300 outline-none transition-colors hover:border-zinc-700 focus:border-amber-400/50 cursor-pointer"
+                    >
+                        <option value="ALL">All Statuses</option>
+                        <option value="completed">Completed</option>
+                        <option value="processing">Processing</option>
+                        <option value="failed">Failed</option>
+                    </select>
                 </div>
             </div>
 
@@ -112,7 +128,7 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisH
                                               {overall}%
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 font-mono">{atsScore}%</td>
+                                        <td className="px-6 py-4 font-mono text-sm">{atsScore}%</td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-1.5 text-[11px]">
                                                   <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full whitespace-nowrap">
@@ -131,7 +147,12 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisH
                                                         ? "bg-amber-400/10 text-amber-400 border-amber-400/20"
                                                         : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                                             }`}>
-                                              {item.analysisStatus === "completed" ? <CheckCircle2 className="size-3" /> : <Clock className="size-3" />}
+                                              {item.analysisStatus === "completed"
+                                                  ? <CheckCircle2 className="h-3 w-3" />
+                                                  : item.analysisStatus === "processing"
+                                                      ? <Clock className="h-3 w-3" />
+                                                      : <AlertTriangle className="h-3 w-3"/>
+                                              }
                                                 {item.analysisStatus}
                                             </span>
                                         </td>
@@ -143,7 +164,7 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis }: AnalysisH
                                                 onClick={() => onSelectAnalysis(item)}
                                                 className="inline-flex items-center gap-1.5 rounded-xl border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:border-amber-400/40 hover:bg-zinc-700"
                                             >
-                                                <Eye className="size-3.5 text-amber-400" />
+                                                <Eye className="h-3.5 w-3.5 text-amber-400" />
                                                 Audit
                                             </button>
                                         </td>

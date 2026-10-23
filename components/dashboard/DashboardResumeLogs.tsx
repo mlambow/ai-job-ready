@@ -94,7 +94,7 @@ export const DashboardResumeLogs: React.FC<DashboardResumeLogsProps> = ({
                         onClick={onViewAll}
                         className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center gap-1 hover:cursor-pointer"
                     >
-                        View Full List
+                        View All Resumes
                         <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                 )}

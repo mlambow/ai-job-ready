@@ -139,7 +139,8 @@ export default function DashboardPage() {
                 {/* Audit Logs History Table */}
                 <AnalysisHistorySection
                     analyses={analyses}
-                    onSelectAnalysis={(a) => setSelectedAudit(a)}
+                    onSelectAnalysis={(analysis) => setSelectedAudit(analysis)}
+                    showHeader
                 />
             </div>
 

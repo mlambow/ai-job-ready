@@ -77,7 +77,7 @@ export default function AnalysisPage() {
                     <div className="space-y-2">
                         <Link
                             href="/dashboard"
-                            className="inline-flex items-center gap-2 text-sm text-zinc-400 transition-colors hover:text-white"
+                            className="inline-flex items-center gap-2 text-xs text-zinc-400 transition-colors hover:text-white"
                         >
                             <ArrowLeft className="size-4" />
                             Back to dashboard
@@ -143,21 +143,6 @@ export default function AnalysisPage() {
                 {/* Analysis history */}
                 {!loading && !error && (
                     <>
-                        <div className="flex items-center justify-between gap-4">
-                            <div>
-                                <h2 className="text-lg font-semibold text-white">
-                                    All analyses
-                                </h2>
-                                <p className="mt-1 text-sm text-zinc-400">
-                                    Your available resume analysis results.
-                                </p>
-                            </div>
-
-                            <span className="rounded-full border border-zinc-800 bg-zinc-900 px-3 py-1 text-sm text-zinc-300">
-                            {analyses.length}{" "}{analyses.length === 1 ? "analysis" : "analyses"}
-                          </span>
-                        </div>
-
                         {analyses.length > 0 ? (
                             <AnalysisHistorySection
                                 analyses={analyses}

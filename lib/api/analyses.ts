@@ -2,18 +2,21 @@
 import {
     getResumes,
     getResumeVersionById,
-    getResumeAnalysisById,
+    getResumeVersions,
+    getResumeAnalyses, getResumeAnalysisById,
 } from "@/lib/api/resumes";
 
 import type {
     Resume,
     ResumeVersion,
     ServerResumeAnalysis,
+    ServerResumeVersion,
 } from "@/utils/types";
 
 export interface AnalysisData {
     resumes: Resume[];
     currentResumeVersions: Record<string, ResumeVersion>;
+    resumeVersions: Record<string, ServerResumeVersion[]>;
     analyses: ServerResumeAnalysis[];
 }
 
@@ -27,71 +30,84 @@ export async function fetchAnalysisById(
 export async function fetchAnalysisData(): Promise<AnalysisData> {
     const resumes: Resume[] = await getResumes();
 
-    const versionResults = await Promise.all(
-        resumes.map(async (resume) => {
-            try {
-                const version = await getResumeVersionById(
-                    resume.id,
-                    resume.currentVersionId
-                );
+    const [currentVersionResults, allVersionResults, analysisResults] =
+        await Promise.all([
+            Promise.all(
+                resumes.map(async (resume) => {
+                    try {
+                        const version = await getResumeVersionById(
+                            resume.id,
+                            resume.currentVersionId
+                        );
+                        return { resumeId: resume.id, version };
+                    } catch (error) {
+                        console.error(
+                            `Failed to load current version for ${resume.id}:`,
+                            error
+                        );
+                        return { resumeId: resume.id, version: null };
+                    }
+                })
+            ),
 
-                return { resumeId: resume.id, version };
-            } catch (error) {
-                console.error(
-                    `Failed to load version for resume ${resume.id}:`,
-                    error
-                );
+            Promise.all(
+                resumes.map(async (resume) => {
+                    try {
+                        const versions: ServerResumeVersion[] =
+                            await getResumeVersions(resume.id);
 
-                return { resumeId: resume.id, version: null };
-            }
-        })
-    );
+                        return { resumeId: resume.id, versions };
+                    } catch (error) {
+                        console.error(
+                            `Failed to load versions for ${resume.id}:`,
+                            error
+                        );
+                        return { resumeId: resume.id, versions: [] };
+                    }
+                })
+            ),
+
+            Promise.all(
+                resumes.map(async (resume) => {
+                    try {
+                        return await getResumeAnalyses(resume.id);
+                    } catch (error) {
+                        console.error(
+                            `Failed to load analyses for ${resume.id}:`,
+                            error
+                        );
+                        return [];
+                    }
+                })
+            ),
+        ]);
 
     const currentResumeVersions: Record<string, ResumeVersion> = {};
 
-    for (const { resumeId, version } of versionResults) {
+    for (const { resumeId, version } of currentVersionResults) {
         if (version) {
             currentResumeVersions[resumeId] = version;
         }
     }
 
-    const analysisResults = await Promise.all(
-        Object.values(currentResumeVersions).map(async (version) => {
-            if (!version.analysisId || !version.resumeId) {
-                return null;
-            }
+    const resumeVersions: Record<string, ServerResumeVersion[]> = {};
 
-            try {
-                return await fetchAnalysisById(
-                    version.resumeId,
-                    version.analysisId
-                );
-            } catch (error) {
-                console.error(
-                    `Failed to load analysis ${version.analysisId}:`,
-                    error
-                );
-
-                return null;
-            }
-        })
-    );
+    for (const { resumeId, versions } of allVersionResults) {
+        resumeVersions[resumeId] = versions;
+    }
 
     const analyses = analysisResults
-        .filter(
-            (analysis): analysis is ServerResumeAnalysis =>
-                analysis !== null
-        )
-        .sort((a, b) => {
-            const dateA = new Date(a.createdAt ?? 0).getTime();
-            const dateB = new Date(b.createdAt ?? 0).getTime();
-
-            return dateB - dateA;
-        });
+        .flat()
+        .sort(
+            (a, b) =>
+                new Date(b.createdAt ?? 0).getTime() -
+                new Date(a.createdAt ?? 0).getTime()
+        );
 
     return {
         resumes,
         currentResumeVersions,
+        resumeVersions,
         analyses,
     };
 }

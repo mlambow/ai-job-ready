@@ -27,7 +27,7 @@ export function DashboardHeader({ onUploadOpen, showUploadButton = true }: Dashb
                     href="/"
                     className="group inline-flex items-center gap-2 text-xs font-medium text-zinc-400 transition-colors hover:text-amber-400"
                 >
-                    <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
                     Back to home
                 </Link>
 
