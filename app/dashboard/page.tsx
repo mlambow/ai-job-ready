@@ -50,7 +50,6 @@ export default function DashboardPage() {
     }, []);
 
 
-
     useEffect(() => {
         let cancelled = false;
 
@@ -76,6 +75,8 @@ export default function DashboardPage() {
             cancelled = true;
         };
     }, []);
+
+    console.log(analyses[0])
 
 
     // --- Transform state data to 2-in-a-row DashboardResumeLogs props ---
