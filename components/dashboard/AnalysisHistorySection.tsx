@@ -32,21 +32,21 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis, showHeader 
     return (
         <div className="space-y-4 mt-8">
             {showHeader && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <Briefcase className="size-5 text-amber-400"/>
+                        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                            <Briefcase className="w-5 h-5 text-amber-400"/>
                             Analysis Audit History Logs
                         </h2>
                         <p className="text-xs text-zinc-400 mt-0.5">
-                            Review detailed ATS scores and keyword alignment across previous runs.
+                            Review detailed ATS scores and keyword alignment.
                         </p>
                     </div>
 
                     {hasAnalyses && (
                         <Link
                             href="/analyses"
-                            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-400 transition-colors hover:text-amber-300"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-amber-400 transition-colors hover:text-amber-300"
                         >
                             View All Analyses
                             <ChevronRight className="w-3.5 h-3.5"/>

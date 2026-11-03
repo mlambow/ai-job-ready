@@ -362,7 +362,7 @@ export function ResumesPage() {
                         Back to dashboard
                     </Link>
 
-                    <div className='flex items-center justify-between w-full'>
+                    <div className='flex items-center justify-between w-full mt-3'>
                         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3.5 py-1 text-xs font-semibold text-amber-400">
                             <Sparkles className="size-3.5" />
                             Resume workspace
