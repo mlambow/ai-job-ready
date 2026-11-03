@@ -76,9 +76,6 @@ export default function DashboardPage() {
         };
     }, []);
 
-    console.log(analyses[0])
-
-
     // --- Transform state data to 2-in-a-row DashboardResumeLogs props ---
     const resumeAuditLogs = useMemo<ResumeAuditLog[]>(() => {
         return resumes.map((resume) => {

@@ -37,11 +37,25 @@ export function DashboardHeader({ onUploadOpen, showUploadButton = true }: Dashb
                         onClick={() => setMenuOpen(!menuOpen)}
                         className="shrink-0 items-center justify-center text-amber-400 hover:cursor-pointer rounded-full transition-colors duration-200 hover:bg-amber-400/20 p-2"
                     >
-                        {menuOpen ? <X className="size-6" /> : <Menu className="size-6" />}
+                        {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                     </button>
 
                     {menuOpen && (
                         <div className="absolute right-0 top-12 z-50 w-60 rounded-2xl border border-zinc-800 bg-zinc-900/95 p-2 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95">
+                            <Link
+                                href='/resumes'
+                                onClick={() => setMenuOpen(false)}
+                                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            >
+                                Resumes
+                            </Link>
+                            <Link
+                                href='/analyses'
+                                onClick={() => setMenuOpen(false)}
+                                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                            >
+                                Analyses
+                            </Link>
                             <button
                                 onClick={handleSignOut}
                                 className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 transition-colors"

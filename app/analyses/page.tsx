@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import {ArrowLeft, AlertCircle, Loader2, RefreshCw, Sparkles} from "lucide-react";
 
 import { AnalysisHistorySection } from "@/components/dashboard/AnalysisHistorySection";
 import { AnalysisAuditModal } from "@/components/dashboard/AnalysisAuditModal";
@@ -83,14 +83,22 @@ export default function AnalysisPage() {
                             Back to dashboard
                         </Link>
 
-                        <h1 className="text-3xl font-bold tracking-tight text-white">
-                            Analysis History
-                        </h1>
+                        <div className='mt-4'>
+                            <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3.5 py-1 text-xs font-semibold text-amber-400">
+                                <Sparkles className="size-3.5" />
+                                Analyses Workspace
+                            </div>
 
-                        <p className="max-w-2xl text-sm text-zinc-400">
-                            Review your resume analyses, ATS scores, and job compatibility
-                            results in one place.
-                        </p>
+                            <h1 className="text-2xl font-bold tracking-tight text-white">
+                                Analysis History
+                            </h1>
+
+                            <p className="max-w-2xl text-xs sm:text-sm text-zinc-400">
+                                Review your resume analyses, ATS scores, and job compatibility
+                                results in one place.
+                            </p>
+                        </div>
+
                     </div>
 
                     <button
