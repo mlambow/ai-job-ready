@@ -15,9 +15,7 @@ interface AnalysisPageProps {
     }>;
 }
 
-export default function ResumeAnalysisClient({
-                                                 params,
-                                             }: AnalysisPageProps) {
+export default function ResumeAnalysisClient({params}: AnalysisPageProps) {
     const { resumeId, analysisId } = use(params);
 
     const router = useRouter();
@@ -25,9 +23,13 @@ export default function ResumeAnalysisClient({
     const [analysis, setAnalysis] =
         useState<ServerResumeAnalysis | null>(null);
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const reloadAnalysis = async () => {
+        const data = await fetchAnalysisById(resumeId, analysisId);
+        setAnalysis(data);
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -107,7 +109,7 @@ export default function ResumeAnalysisClient({
 
     return (
         <main className="mx-auto max-w-5xl px-4 py-8">
-            <ResumeAnalysisResults analysis={analysis} />
+            <ResumeAnalysisResults analysis={analysis} onReanalyze={reloadAnalysis} />
         </main>
     );
 }

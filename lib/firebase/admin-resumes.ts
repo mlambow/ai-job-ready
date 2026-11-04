@@ -264,11 +264,11 @@ export async function getResumeVersions(userId: string, resumeId: string,
 }
 
 export async function getDeletionData(userId: string, resumeId: string,): Promise<{
-    resumeRef: FirebaseFirestore.DocumentReference;
-    resume: ServerResume;
-    versions: ServerResumeVersion[];
-    analysis: ServerResumeAnalysis[];
-}> {
+        resumeRef: FirebaseFirestore.DocumentReference;
+        resume: ServerResume;
+        versions: ServerResumeVersion[];
+        analysis: ServerResumeAnalysis[];
+    }> {
     const resumeRef = adminDb
         .collection("users")
         .doc(userId)
@@ -313,10 +313,10 @@ export async function getDeletionData(userId: string, resumeId: string,): Promis
 
             overallScore: data.overallScore ?? 0,
 
-            ATS: data.ATS
+            ats: data.ats
                 ? {
-                    score: data.ATS.score ?? 0,
-                    tips: data.ATS.tips ?? [],
+                    score: data.ats.score ?? 0,
+                    tips: data.ats.tips ?? [],
                 }
                 : null,
 

@@ -97,7 +97,7 @@ export default function DashboardPage() {
                     ? new Date(resume.createdAt).toLocaleDateString()
                     : "Recently",
                 status,
-                atsScore: matchingAnalysis?.ATS?.score,
+                atsScore: matchingAnalysis?.ats?.score,
                 matchPercentage: matchingAnalysis?.overallScore ?? undefined,
                 targetRole: matchingAnalysis?.jobTitle,
                 version: currentVersion ? currentVersion.versionNumber?.toString() || "1.0" : "1.0",

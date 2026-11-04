@@ -24,7 +24,7 @@ export function MetricsGrid({ resumes, analyses }: MetricsGridProps) {
 
         const avgATS = completedAnalyses.length
             ? Math.round(
-                completedAnalyses.reduce((acc, curr) => acc + (curr.ATS?.score || 0), 0) /
+                completedAnalyses.reduce((acc, curr) => acc + (curr.ats?.score || 0), 0) /
                 completedAnalyses.length
             )
             : 0;

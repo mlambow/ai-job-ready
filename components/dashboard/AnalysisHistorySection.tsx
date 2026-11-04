@@ -108,7 +108,7 @@ export function AnalysisHistorySection({ analyses, onSelectAnalysis, showHeader 
                         ) : (
                             filteredAnalyses.map((item) => {
                                 const overall = item.overallScore ?? 0;
-                                const atsScore = item.ATS?.score ?? 0;
+                                const atsScore = item.ats?.score ?? 0;
                                 const matchedCount = item.skills?.matchedSkills?.length ?? 0;
                                 const missingCount = item.skills?.missingSkills?.length ?? 0;
 

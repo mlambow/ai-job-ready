@@ -227,8 +227,7 @@ export async function getResumeVersions(resumeId: string) {
     return data.versions;
 }
 
-export async function getResumeVersionById(resumeId: string, versionId: string,
-): Promise<ResumeVersion> {
+export async function getResumeVersionById(resumeId: string, versionId: string): Promise<ResumeVersion> {
     const user = await waitForUser();
 
     const idToken = await user.getIdToken();
@@ -253,7 +252,7 @@ export async function getResumeVersionById(resumeId: string, versionId: string,
     return data.version;
 }
 
-export async function viewResumeVersion(resumeId: string, versionId: string,) {
+export async function viewResumeVersion(resumeId: string, versionId: string) {
     const user = await waitForUser();
 
     const idToken = await user.getIdToken();
@@ -284,7 +283,7 @@ export async function viewResumeVersion(resumeId: string, versionId: string,) {
     return response.blob();
 }
 
-export async function downloadResumeVersion(resumeId: string, versionId: string,) {
+export async function downloadResumeVersion(resumeId: string, versionId: string) {
     const user = await waitForUser();
 
     const idToken = await user.getIdToken();
@@ -388,10 +387,34 @@ export async function analyzeResume(resumeId: string,
     return responseData;
 }
 
+export async function retryResumeAnalysis(resumeId: string, analysisId: string) {
+    const user = await waitForUser();
 
-export async function getResumeAnalyses(
-    resumeId: string,
-): Promise<ServerResumeAnalysis[]> {
+    const idToken = await user.getIdToken();
+
+    const response = await fetch(
+        `/api/resumes/${resumeId}/analysis/${analysisId}/retry`,
+        {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+                "Content-Type": "application/json",
+            },
+        },
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            responseData.error || "Failed to retry resume analysis.",
+        );
+    }
+
+    return responseData;
+}
+
+export async function getResumeAnalyses(resumeId: string): Promise<ServerResumeAnalysis[]> {
     const user = await waitForUser();
     const idToken = await user.getIdToken();
 
@@ -414,7 +437,6 @@ export async function getResumeAnalyses(
 
     return data.analyses;
 }
-
 
 export async function getResumeAnalysisById(resumeId: string, analysisId: string) {
     const user = await waitForUser();

@@ -17,7 +17,7 @@ export interface DetailedAITip {
 export interface AIResumeAnalysisResponse {
     overallScore: number;
 
-    ATS: {
+    ats: {
         score: number;
         tips: AITip[];
     };
@@ -81,7 +81,7 @@ export interface ResumeAnalysis {
 
     overallScore: number | null;
 
-    ATS: {
+    ats: {
         score: number;
         tips: AITip[];
     } | null;
@@ -140,7 +140,7 @@ export interface ServerResumeAnalysis {
     analysisStatus: AnalysisStatus;
     overallScore: number | null;
 
-    ATS: {
+    ats: {
         score: number;
         tips: AITip[];
     } | null;
@@ -260,7 +260,7 @@ export const analysisSchema = {
             type: Type.NUMBER,
         },
 
-        ATS: {
+        ats: {
             type: Type.OBJECT,
 
             properties: {
@@ -525,7 +525,7 @@ export const analysisSchema = {
 
     required: [
         "overallScore",
-        "ATS",
+        "ats",
         "toneAndStyle",
         "content",
         "structure",

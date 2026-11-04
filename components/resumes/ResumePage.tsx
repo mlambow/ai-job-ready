@@ -391,7 +391,7 @@ export function ResumesPage() {
                             onClick={() => setUploadOpen(true)}
                             className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:bg-amber-300 active:scale-[0.98]"
                         >
-                            <Plus className="size-4"/>
+                            <Plus className="w-4 h-4"/>
                             Upload Resume
                         </button>
                     )}

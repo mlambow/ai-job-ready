@@ -9,7 +9,7 @@ import {
     CheckCircle2,
     CircleX,
     FileText,
-    Lightbulb,
+    Lightbulb, Loader2, RotateCcw,
     Sparkles,
     Target,
     WandSparkles,
@@ -20,17 +20,20 @@ import ScoreCard from "@/components/analysis/ScoreCard";
 import AnalysisSection from "@/components/analysis/AnalysisSection";
 import ScoreGauge from "@/components/analysis/ScoreGauge";
 import Link from "next/link";
+import {retryResumeAnalysis} from "@/lib/api/resumes";
 
 interface ResumeAnalysisResultsProps {
     analysis: ServerResumeAnalysis;
-    onReanalyze?: () => void;
+    onReanalyze?: () => Promise<void>;
 }
 
-export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
+export function ResumeAnalysisResults({analysis, onReanalyze}: ResumeAnalysisResultsProps) {
     const [skillsTab, setSkillsTab] = useState<"matched" | "missing">("matched");
+    const [isRetrying, setIsRetrying] = useState(false);
+    const [retryError, setRetryError] = useState<string | null>(null);
 
     // Safely extract scores & data arrays with fallbacks
-    const atsScore = analysis.ATS?.score ?? 0;
+    const atsScore = analysis.ats?.score ?? 0;
     const contentScore = analysis.content?.score ?? 0;
     const skillsScore = analysis.skills?.score ?? 0;
     const structureScore = analysis.structure?.score ?? 0;
@@ -38,6 +41,25 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
 
     const matchedSkills = analysis.skills?.matchedSkills ?? [];
     const missingSkills = analysis.skills?.missingSkills ?? [];
+
+    const handleRetryAnalysis = async () => {
+        try {
+            setIsRetrying(true);
+            setRetryError(null);
+
+            await retryResumeAnalysis(analysis.resumeId, analysis.id);
+
+            await onReanalyze?.();
+        } catch (error) {
+            setRetryError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to retry resume analysis."
+            );
+        } finally {
+            setIsRetrying(false);
+        }
+    };
 
     return (
         <div className="w-full space-y-6 text-zinc-100 print:bg-white print:text-zinc-900">
@@ -60,20 +82,19 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
             <div className="flex flex-col gap-5 rounded-3xl border border-zinc-800/80 bg-zinc-950/90 p-6 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between print:rounded-none print:border-b print:p-0 print:pb-5">
 
                 <div className="space-y-2">
-
                     <Link
                         href="/resumes"
                         className="group inline-flex items-center gap-2 text-xs font-medium text-zinc-400 transition-colors hover:text-amber-400"
                     >
-                        <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-0.5" />
+                        <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
                         Back to resumes
                     </Link>
 
                     {/* Analysis Header */}
                     <div className="space-y-3">
                         {/* Label */}
-                        <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
-                            <Sparkles className="size-3" />
+                        <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-semibold tracking-wider text-amber-400">
+                            <Sparkles className="w-3 h-3" />
                             AI Resume Analysis
                         </div>
 
@@ -86,7 +107,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                             {/* Company */}
                             {analysis.companyName && (
                                 <div className="mt-2 flex items-center gap-2 text-xs text-zinc-400 print:text-zinc-600">
-                                    <Building2 className="size-3.5 text-zinc-500" />
+                                    <Building2 className="w-3.5 h-3.5 text-zinc-500" />
                                     <span>Company name:</span>
                                     <span className="font-semibold text-amber-400 print:text-zinc-800">
                                         {analysis.companyName}
@@ -96,6 +117,31 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                         </div>
                     </div>
                 </div>
+
+                {analysis.analysisStatus === "failed" && (
+                    <div className="flex flex-col items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={handleRetryAnalysis}
+                            disabled={isRetrying}
+                            className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-400 px-5 py-3 text-xs font-bold text-zinc-950 shadow-lg shadow-amber-500/10 transition-all hover:cursor-pointer hover:bg-amber-400/10 hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                            {isRetrying ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <RotateCcw className="h-4 w-4" />
+                            )}
+
+                            {isRetrying ? "Retrying analysis..." : "Retry Analysis"}
+                        </button>
+
+                        {retryError && (
+                            <p className="text-sm text-red-500">
+                                {retryError}
+                            </p>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Overall Score */}
@@ -119,7 +165,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
 
                         <div>
                             <h2 className="flex items-center gap-2 text-sm font-bold text-white">
-                                <Target className="size-4 text-amber-400" />
+                                <Target className="w-4 h-4 text-amber-400" />
                                 Resume Overview
                             </h2>
 
@@ -187,16 +233,16 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
 
             {/* ATS Feedback */}
 
-            {analysis.ATS && (
+            {analysis.ats && (
                 <AnalysisSection
                     title={`ATS Feedback — ${atsScore}%`}
                     icon={
-                        <FileText className="size-4 text-amber-400" />
+                        <FileText className="w-4 h-4 text-amber-400" />
                     }
                 >
                     <div className="space-y-3">
 
-                        {analysis.ATS.tips?.map((item, index) => {
+                        {analysis.ats.tips?.map((item, index) => {
 
                             const isGood = item.type === "good";
                             const isImprove = item.type === "improve";
@@ -215,11 +261,11 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                                     <div className="flex items-start gap-3">
 
                                         {isGood ? (
-                                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+                                            <CheckCircle2 className="mt-0.5 w-4 h-4 shrink-0 text-emerald-400" />
                                         ) : isImprove ? (
-                                            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" />
+                                            <AlertTriangle className="mt-0.5 w-4 h-4 shrink-0 text-amber-400" />
                                         ) : (
-                                            <CircleX className="mt-0.5 size-4 shrink-0 text-rose-400" />
+                                            <CircleX className="mt-0.5 w-4 h-4 shrink-0 text-rose-400" />
                                         )}
 
                                         <p className="text-xs leading-relaxed text-zinc-300">
@@ -241,7 +287,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                 <AnalysisSection
                     title={`Content Analysis — ${contentScore}%`}
                     icon={
-                        <Lightbulb className="size-4 text-blue-400" />
+                        <Lightbulb className="w-4 h-4 text-blue-400" />
                     }
                 >
                     <div className="space-y-3">
@@ -265,11 +311,11 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                                     <div className="flex items-start gap-3">
 
                                         {isGood ? (
-                                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-400" />
+                                            <CheckCircle2 className="mt-0.5 w-4 h-4 shrink-0 text-emerald-400" />
                                         ) : isImprove ? (
-                                            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-400" />
+                                            <AlertTriangle className="mt-0.5 w-4 h-4 shrink-0 text-amber-400" />
                                         ) : (
-                                            <CircleX className="mt-0.5 size-4 shrink-0 text-rose-400" />
+                                            <CircleX className="mt-0.5 w-4 h-4 shrink-0 text-rose-400" />
                                         )}
 
                                         <p className="text-xs leading-relaxed text-zinc-300">
@@ -291,7 +337,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                 <AnalysisSection
                     title={`Skills Analysis — ${skillsScore}%`}
                     icon={
-                        <Target className="size-4 text-purple-400" />
+                        <Target className="w-4 h-4 text-purple-400" />
                     }
                 >
                     <div className="space-y-6">
@@ -396,7 +442,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                 <AnalysisSection
                     title="Experience Analysis"
                     icon={
-                        <CheckCircle2 className="size-4 text-emerald-400" />
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                     }
                 >
                     <div className="space-y-5">
@@ -446,7 +492,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                 <AnalysisSection
                     title="Keyword Recommendations"
                     icon={
-                        <Sparkles className="size-4 text-amber-400" />
+                        <Sparkles className="w-4  h-text-amber-400" />
                     }
                 >
                     <div className="space-y-5">
@@ -483,7 +529,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                                                 key={index}
                                                 className="flex items-start gap-2 rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-xs leading-relaxed text-zinc-300"
                                             >
-                                                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-amber-400" />
+                                                <CheckCircle2 className="mt-0.5 w-4 h-4 shrink-0 text-amber-400" />
 
                                                 {tip}
                                             </li>
@@ -506,7 +552,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                 <AnalysisSection
                     title={`Resume Summary — ${analysis.summary.alignmentScore ?? 0}%`}
                     icon={
-                        <FileText className="size-4 text-blue-400" />
+                        <FileText className="w-4 h-4 text-blue-400" />
                     }
                 >
                     <div className="space-y-3">
@@ -550,7 +596,7 @@ export function ResumeAnalysisResults({analysis}: ResumeAnalysisResultsProps) {
                     <div className="mb-4 flex items-center gap-3">
 
                         <div className="flex size-10 items-center justify-center rounded-xl bg-amber-500/10">
-                            <WandSparkles className="size-5 text-amber-400" />
+                            <WandSparkles className="w-5 h-5 text-amber-400" />
                         </div>
 
                         <div>

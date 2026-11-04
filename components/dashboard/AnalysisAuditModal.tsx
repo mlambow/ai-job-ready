@@ -37,7 +37,7 @@ export function AnalysisAuditModal({ analysis, onClose }: AnalysisAuditModalProp
                     </div>
                     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
                         <span className="text-[11px] font-medium text-zinc-400">ATS Readiness</span>
-                        <p className="text-2xl font-extrabold text-white mt-1">{analysis.ATS?.score ?? 0}%</p>
+                        <p className="text-2xl font-extrabold text-white mt-1">{analysis.ats?.score ?? 0}%</p>
                     </div>
                     <div className="rounded-2xl border border-zinc-800 bg-zinc-950/60 p-4">
                         <span className="text-[11px] font-medium text-zinc-400">Skills Score</span>

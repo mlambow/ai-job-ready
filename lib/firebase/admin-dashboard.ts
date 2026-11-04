@@ -68,7 +68,7 @@ export async function getDashboardData(
                     overallScore:
                         data.overallScore ?? null,
 
-                    ATS: {
+                    ats: {
                         score: data.ats?.score ?? 0,
                         tips: data.ats?.tips ?? [],
                     },

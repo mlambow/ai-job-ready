@@ -59,7 +59,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
         const body = await request.json();
         const jobTitle = body.jobTitle.trim();
         const jobDescription = body.jobDescription.trim();
-        const companyName = body.companyName.trim();
+        const companyName = body.companyName.trim() ?? "";
 
         if (!jobTitle) {
             return NextResponse.json(
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, {params}: { params: Promise<{ r
         //Analyze with Gemini
         const aiAnalysis = await analyzeResumeWithAI(
             version.extractedText,
-            jobTitle, jobDescription, companyName || null
+            jobTitle, companyName || null, jobDescription
         )
 
         await completeAnalysis(userId, resumeId, analysisId, aiAnalysis)
